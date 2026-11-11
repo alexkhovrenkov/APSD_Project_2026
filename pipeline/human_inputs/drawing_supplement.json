@@ -1,0 +1,28 @@
+{
+  "title": "Human-supplied drawing facts (kept separate from API extraction)",
+  "rules": [
+    "Only entries with verified=true AND verified_by AND verified_on are copied into manifest.json (section human_supplied_facts).",
+    "They are always labelled provenance=human_supplied and are never merged into the API-derived facts.",
+    "The 'source' must name the drawing page and callout.",
+    "Cite the APSD-LATHE-Final drawing tab (view and callout) in 'source'."
+  ],
+  "drawing": "Onshape drawing tab 'APSD-LATHE-Final' (document 6877e7a6059a24d360e8c6e1, element 39fec93b315c33208dd4a282) - team instruction 2026-11-11: use this drawing for further work",
+  "entries": [
+    {
+      "fact": "external_thread_on_physical_part",
+      "value": {
+        "present": true,
+        "region": "long Ø50 shaft section opposite the small end",
+        "pitch_callout_mm": 5,
+        "region_length_callout_mm": 125
+      },
+      "unit": "mm",
+      "source": "Onshape drawing tab 'APSD-LATHE-Final' (element 39fec93b315c33208dd4a282): thread on the long Ø50 shaft, pitch callout '5', threaded length '125' - confirmed on this tab by the verifiers",
+      "proposed_by": "pipeline author (initial reading of the brief's drawing, PDF p.13)",
+      "verified": true,
+      "verified_by": "Ezgi Kutlu & Mario Iraheta",
+      "verified_on": "11-11-2026",
+      "note": "Verified 11-11-2026 against the APSD-LATHE-Final drawing tab (team confirmation relayed by Julissa Barahona). No thread designation, standard or tolerance class recorded here."
+    }
+  ]
+}

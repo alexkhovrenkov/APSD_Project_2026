@@ -1,0 +1,7 @@
+# Versions installed and tested on 2026-11-09 (Python 3.13.12, macOS)
+requests==2.34.2
+python-dotenv==1.2.4
+jsonschema==4.26.0
+pydantic==2.14.3
+openai==3.46.0
+pytest==9.2.0

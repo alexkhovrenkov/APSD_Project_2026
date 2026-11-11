@@ -1,0 +1,62 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["part", "digits", "form_code", "information_not_derivable_from_geometry", "overall_notes"],
+  "properties": {
+    "part": {"type": "string"},
+    "digits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["d1", "d2", "d3", "d4", "d5"],
+      "properties": {
+        "d1": {"$ref": "#/$defs/position"},
+        "d2": {"$ref": "#/$defs/position"},
+        "d3": {"$ref": "#/$defs/position"},
+        "d4": {"$ref": "#/$defs/position"},
+        "d5": {"$ref": "#/$defs/position"}
+      }
+    },
+    "form_code": {"type": "string", "description": "Five characters, positions d1 to d5 in order; write the letter U for a position whose digit is UNKNOWN."},
+    "information_not_derivable_from_geometry": {"type": "array", "items": {"type": "string"}},
+    "overall_notes": {"type": "string"}
+  },
+  "$defs": {
+    "position": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["digit", "course_table_row", "justification", "course_rule_reference", "feature_evidence", "uncertainty", "uncertainty_reason", "competing_candidates"],
+      "properties": {
+        "digit": {"type": "string", "enum": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "UNKNOWN"]},
+        "course_table_row": {"type": "string", "description": "Row text from the COURSE OPITZ TABLE, or empty if UNKNOWN"},
+        "justification": {"type": "string"},
+        "course_rule_reference": {"type": "string", "description": "e.g. 'COURSE TABLE d2 row 5; DECISION RULE R6'"},
+        "feature_evidence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["manifest_fact", "observation"],
+            "properties": {
+              "manifest_fact": {"type": "string", "description": "facts.<key> or human_supplied_facts[<i>]"},
+              "observation": {"type": "string"}
+            }
+          }
+        },
+        "uncertainty": {"type": "string", "enum": ["low", "medium", "high"]},
+        "uncertainty_reason": {"type": "string"},
+        "competing_candidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["digit", "why_not_chosen"],
+            "properties": {
+              "digit": {"type": "string"},
+              "why_not_chosen": {"type": "string"}
+            }
+          }
+        }
+      }
+    }
+  }
+}

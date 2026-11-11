@@ -1,0 +1,265 @@
+{
+ "record_type": "extraction_record",
+ "run_id": "20261111T105407Z_hmac",
+ "evidence_class": "LIVE Onshape API responses (sanitized)",
+ "started_utc": "2026-11-11T10:54:07+00:00",
+ "finished_utc": "2026-11-11T10:54:10+00:00",
+ "auth_mode": "hmac",
+ "api_version": "v17",
+ "target": {
+  "host": "https://cad.onshape.com",
+  "document_id": "6877e7a6059a24d360e8c6e1",
+  "url_wvm": "w",
+  "url_wvm_id": "008a5bb3f73e5b75f4629e14",
+  "element_id": "a93d3af214699fcc1c182757"
+ },
+ "element_type": "PARTSTUDIO",
+ "element_name": "Part Studio 1",
+ "element_microversion": "70f74d5477d38318654aa760",
+ "snapshot": {
+  "wvm": "m",
+  "wvm_id": "1eaec34d0c170d6e3d145f96",
+  "source": "02_workspace_microversion.json#/microversion"
+ },
+ "configuration_query_parameter": null,
+ "configuration_note": "No configuration parameter sent: Onshape evaluates the default configuration.",
+ "default_workspace_microversion_start": "1eaec34d0c170d6e3d145f96",
+ "default_workspace_microversion_end": "1eaec34d0c170d6e3d145f96",
+ "revision_check_basis": "getDocumentWorkspaceMicroversion (currentmicroversion) at start and end",
+ "revision_changed_during_extraction": false,
+ "endpoints": {
+  "01_document": {
+   "status": 200,
+   "retrieved": true,
+   "file": "01_document.json"
+  },
+  "02_workspace_microversion": {
+   "status": 200,
+   "retrieved": true,
+   "file": "02_workspace_microversion.json"
+  },
+  "03_elements": {
+   "status": 200,
+   "retrieved": true,
+   "file": "03_elements.json"
+  },
+  "04_features": {
+   "status": 200,
+   "retrieved": true,
+   "file": "04_features.json"
+  },
+  "05_parts": {
+   "status": 200,
+   "retrieved": true,
+   "file": "05_parts.json"
+  },
+  "06_configuration": {
+   "status": 200,
+   "retrieved": true,
+   "file": "06_configuration.json"
+  },
+  "07_bodydetails": {
+   "status": 200,
+   "retrieved": true,
+   "file": "07_bodydetails.json"
+  },
+  "08_boundingboxes": {
+   "status": 200,
+   "retrieved": true,
+   "file": "08_boundingboxes.json"
+  },
+  "09_document_end": {
+   "status": 200,
+   "retrieved": true,
+   "file": "09_document_end.json"
+  },
+  "10_workspace_microversion_end": {
+   "status": 200,
+   "retrieved": true,
+   "file": "10_workspace_microversion_end.json"
+  }
+ },
+ "request_log": [
+  {
+   "name": "01_document",
+   "method": "GET",
+   "url": "https://cad.onshape.com/api/v17/documents/6877e7a6059a24d360e8c6e1",
+   "timestamp_utc": "2026-11-11T10:54:07+00:00",
+   "status": 200,
+   "attempts": 1,
+   "auth_mode": "hmac",
+   "response_headers": {
+    "Date": "Wed, 11 Nov 2026 10:54:08 GMT",
+    "X-Api-Version": "v17",
+    "X-Rate-Limit-Remaining": "3000",
+    "Content-Type": "application/json;charset=utf-8"
+   },
+   "saved_as": "01_document.json",
+   "sha256": "857de632f720d052d3c8c7d2a9659a59f3a56f5e3facc96dd221a8430e5e1e79",
+   "error": null
+  },
+  {
+   "name": "02_workspace_microversion",
+   "method": "GET",
+   "url": "https://cad.onshape.com/api/v17/documents/d/6877e7a6059a24d360e8c6e1/w/008a5bb3f73e5b75f4629e14/currentmicroversion",
+   "timestamp_utc": "2026-11-11T10:54:08+00:00",
+   "status": 200,
+   "attempts": 1,
+   "auth_mode": "hmac",
+   "response_headers": {
+    "Date": "Wed, 11 Nov 2026 10:54:08 GMT",
+    "X-Api-Version": "v17",
+    "X-Rate-Limit-Remaining": "400",
+    "Content-Type": "application/json;charset=utf-8"
+   },
+   "saved_as": "02_workspace_microversion.json",
+   "sha256": "28ed5e70b94a6dc18c42947cfb8aa15757d481851586637dfe0632081cfa9196",
+   "error": null
+  },
+  {
+   "name": "03_elements",
+   "method": "GET",
+   "url": "https://cad.onshape.com/api/v17/documents/d/6877e7a6059a24d360e8c6e1/m/1eaec34d0c170d6e3d145f96/elements",
+   "timestamp_utc": "2026-11-11T10:54:08+00:00",
+   "status": 200,
+   "attempts": 1,
+   "auth_mode": "hmac",
+   "response_headers": {
+    "Date": "Wed, 11 Nov 2026 10:54:09 GMT",
+    "X-Api-Version": "v17",
+    "X-Rate-Limit-Remaining": "8998",
+    "Content-Type": "application/json;charset=utf-8"
+   },
+   "saved_as": "03_elements.json",
+   "sha256": "a12993e334b5147af50a46c0d7d4a9a4d67b939a23634a68e2f6e96a6b67adb2",
+   "error": null
+  },
+  {
+   "name": "04_features",
+   "method": "GET",
+   "url": "https://cad.onshape.com/api/v17/partstudios/d/6877e7a6059a24d360e8c6e1/m/1eaec34d0c170d6e3d145f96/e/a93d3af214699fcc1c182757/features",
+   "timestamp_utc": "2026-11-11T10:54:09+00:00",
+   "status": 200,
+   "attempts": 1,
+   "auth_mode": "hmac",
+   "response_headers": {
+    "Date": "Wed, 11 Nov 2026 10:54:09 GMT",
+    "X-Api-Version": "v17",
+    "X-Rate-Limit-Remaining": "99",
+    "Content-Type": "application/json;charset=utf-8"
+   },
+   "saved_as": "04_features.json",
+   "sha256": "231a198afb7044586967c81e13d022bedea3b0767080251e6261174cb4e0c9d3",
+   "error": null
+  },
+  {
+   "name": "05_parts",
+   "method": "GET",
+   "url": "https://cad.onshape.com/api/v17/parts/d/6877e7a6059a24d360e8c6e1/m/1eaec34d0c170d6e3d145f96/e/a93d3af214699fcc1c182757",
+   "timestamp_utc": "2026-11-11T10:54:09+00:00",
+   "status": 200,
+   "attempts": 1,
+   "auth_mode": "hmac",
+   "response_headers": {
+    "Date": "Wed, 11 Nov 2026 10:54:09 GMT",
+    "X-Api-Version": "v17",
+    "X-Rate-Limit-Remaining": "500",
+    "Content-Type": "application/json;charset=utf-8"
+   },
+   "saved_as": "05_parts.json",
+   "sha256": "d9a66ff3284e86fd7fa7ce9cc4c15d8dc0aeb17a866a980d6b5ed18aca4b6159",
+   "error": null
+  },
+  {
+   "name": "06_configuration",
+   "method": "GET",
+   "url": "https://cad.onshape.com/api/v17/elements/d/6877e7a6059a24d360e8c6e1/m/1eaec34d0c170d6e3d145f96/e/a93d3af214699fcc1c182757/configuration",
+   "timestamp_utc": "2026-11-11T10:54:09+00:00",
+   "status": 200,
+   "attempts": 1,
+   "auth_mode": "hmac",
+   "response_headers": {
+    "Date": "Wed, 11 Nov 2026 10:54:10 GMT",
+    "X-Api-Version": "v17",
+    "X-Rate-Limit-Remaining": "3000",
+    "Content-Type": "application/json;charset=utf-8"
+   },
+   "saved_as": "06_configuration.json",
+   "sha256": "0b10d2dcf68951b53cb64cf6d7103975a0cb249b4d5ce7fb58303512b6b11b78",
+   "error": null
+  },
+  {
+   "name": "07_bodydetails",
+   "method": "GET",
+   "url": "https://cad.onshape.com/api/v17/partstudios/d/6877e7a6059a24d360e8c6e1/m/1eaec34d0c170d6e3d145f96/e/a93d3af214699fcc1c182757/bodydetails",
+   "timestamp_utc": "2026-11-11T10:54:09+00:00",
+   "status": 200,
+   "attempts": 1,
+   "auth_mode": "hmac",
+   "response_headers": {
+    "Date": "Wed, 11 Nov 2026 10:54:10 GMT",
+    "X-Api-Version": "v17",
+    "X-Rate-Limit-Remaining": "499",
+    "Content-Type": "application/json;charset=utf-8"
+   },
+   "saved_as": "07_bodydetails.json",
+   "sha256": "fe6bd3356d86dc5e0574861bd4525b88e93ff78915c30d9ae2f206168c965884",
+   "error": null
+  },
+  {
+   "name": "08_boundingboxes",
+   "method": "GET",
+   "url": "https://cad.onshape.com/api/v17/partstudios/d/6877e7a6059a24d360e8c6e1/m/1eaec34d0c170d6e3d145f96/e/a93d3af214699fcc1c182757/boundingboxes",
+   "timestamp_utc": "2026-11-11T10:54:10+00:00",
+   "status": 200,
+   "attempts": 1,
+   "auth_mode": "hmac",
+   "response_headers": {
+    "Date": "Wed, 11 Nov 2026 10:54:10 GMT",
+    "X-Api-Version": "v17",
+    "X-Rate-Limit-Remaining": "2999",
+    "Content-Type": "application/json;charset=utf-8"
+   },
+   "saved_as": "08_boundingboxes.json",
+   "sha256": "469e961d920b0989453f2d21c58e9988a7bff325cb0aa780489007c4b673e033",
+   "error": null
+  },
+  {
+   "name": "09_document_end",
+   "method": "GET",
+   "url": "https://cad.onshape.com/api/v17/documents/6877e7a6059a24d360e8c6e1",
+   "timestamp_utc": "2026-11-11T10:54:10+00:00",
+   "status": 200,
+   "attempts": 1,
+   "auth_mode": "hmac",
+   "response_headers": {
+    "Date": "Wed, 11 Nov 2026 10:54:10 GMT",
+    "X-Api-Version": "v17",
+    "X-Rate-Limit-Remaining": "2999",
+    "Content-Type": "application/json;charset=utf-8"
+   },
+   "saved_as": "09_document_end.json",
+   "sha256": "3538093a692b046930d49e464e49fa928c9e69aaea8c83d8b86d5f8ce265c609",
+   "error": null
+  },
+  {
+   "name": "10_workspace_microversion_end",
+   "method": "GET",
+   "url": "https://cad.onshape.com/api/v17/documents/d/6877e7a6059a24d360e8c6e1/w/008a5bb3f73e5b75f4629e14/currentmicroversion",
+   "timestamp_utc": "2026-11-11T10:54:10+00:00",
+   "status": 200,
+   "attempts": 1,
+   "auth_mode": "hmac",
+   "response_headers": {
+    "Date": "Wed, 11 Nov 2026 10:54:10 GMT",
+    "X-Api-Version": "v17",
+    "X-Rate-Limit-Remaining": "399",
+    "Content-Type": "application/json;charset=utf-8"
+   },
+   "saved_as": "10_workspace_microversion_end.json",
+   "sha256": "28ed5e70b94a6dc18c42947cfb8aa15757d481851586637dfe0632081cfa9196",
+   "error": null
+  }
+ ],
+ "redaction": "Authorization/On-Nonce/cookies never stored; user names, ids, e-mails and avatars in Onshape user objects replaced by <REDACTED>. Geometry and feature data unchanged."
+}

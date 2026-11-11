@@ -1,0 +1,13 @@
+# Secrets - never commit
+.env
+.env.*
+!.env.example
+
+# Local Python environment / caches
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Dry-run payloads are reproducible; keep live runs (they are evidence)
+output/ai_runs/*_dryrun/

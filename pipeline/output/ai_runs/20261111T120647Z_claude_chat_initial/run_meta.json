@@ -1,0 +1,35 @@
+{
+ "provider": "Anthropic",
+ "model_designation": "Opus 5.5 High",
+ "model_designation_source": "as shown in the chat interface's model selector, entered by the operator",
+ "interface": "claude.ai web chat (manual paste)",
+ "date_of_use": "2026-11-11",
+ "operator": "Julissa M Barahona",
+ "conversation_ref": null,
+ "imported_utc": "2026-11-11T12:21:07+00:00",
+ "prompt_file": "chat_prompt.txt",
+ "chat_prompt_sha256": "fb756caf9635021f212f841ef17a3a80ac7ec9093c6e532fffe1cc77431a559d",
+ "manifest_sha256": "20aed2ad7aa6fa7ea2f975a181d2da904c6bbacb1d84248ab4f9b8aa68179970",
+ "parent_run": null,
+ "structured_output_enforcement": "none (chat); checked after import",
+ "json_extraction": "whole reply was JSON",
+ "response_raw_sha256": "168b10fd6758d7369687a3f33cd8bc3050002a0cc2522699933f905fa0e08157",
+ "outcome": "parsed",
+ "form_code_proposed": "15212",
+ "metadata_corrections": [
+  {
+   "field": "model_designation",
+   "old": "<name from the selector>",
+   "new": "Opus 5.5 High",
+   "reason": "placeholders were left in the import command",
+   "corrected_utc": "2026-11-11T12:25:20+00:00"
+  },
+  {
+   "field": "operator",
+   "old": "<your name>",
+   "new": "Julissa M Barahona",
+   "reason": "placeholders were left in the import command",
+   "corrected_utc": "2026-11-11T12:25:20+00:00"
+  }
+ ]
+}
