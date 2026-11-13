@@ -11,3 +11,6 @@ __pycache__/
 
 # Dry-run payloads are reproducible; keep live runs (they are evidence)
 output/ai_runs/*_dryrun/
+
+# macOS folder metadata
+.DS_Store
