@@ -3,7 +3,7 @@
  "ai_run": "20261111T124734Z_claude_chat_revised",
  "instructions": "Fill in after comparing each AI digit with the drawing and the FROZEN manual worksheet (coding/manual_opitz.pdf). Do not edit classification_initial.json.",
  "reviewer": "Julissa Barahona & Mario Iraheta",
- "review_date": "11-11-2026",
+ "review_date": "11-11-2026 (d4 revised 13-11-2026)",
  "digits": {
   "d1": {
    "ai_initial": "1",
@@ -58,8 +58,8 @@
   },
   "d4": {
    "ai_initial": "UNKNOWN",
-   "human_decision": "0",
-   "final": "0",
+   "human_decision": "1",
+   "final": "1",
    "agree_with_ai": "no",
    "discrepancy_cause": "missing manufacturing data",
    "discrepancy_cause_options": [
@@ -71,7 +71,21 @@
     "unsupported AI inference"
    ],
    "feedback_to_ai": null,
-   "comment": "Claude correctly recognised that machining can't be read from the CAD data; the team decides 0, assuming the key isn't machined."
+   "comment": "AI revised answer UNKNOWN followed the team's round-1 feedback (key faces not machined), because machining status is not in the manifest. Final team decision 13-11-2026: d4 = 1 - see decision_history.",
+   "decision_history": [
+    {
+     "date": "11-11-2026",
+     "by": "Julissa Barahona & Mario Iraheta",
+     "final": "0",
+     "comment": "Claude correctly recognised that machining can't be read from the CAD data; the team decides 0, assuming the key isn't machined."
+    },
+    {
+     "date": "13-11-2026",
+     "by": "Julissa M Barahona",
+     "final": "1",
+     "comment": "On re-checking the APSD-LATHE-Final drawing the team found the raised key on the small end, which had been missed. Its flat faces are treated as machined plane surfaces, so d4 = 1 (Surface plane/curved), as in the AI's INITIAL proposal. The round-1 override to 0 was a human review error."
+    }
+   ]
   },
   "d5": {
    "ai_initial": "2",

@@ -88,7 +88,13 @@
     "unsupported AI inference"
    ],
    "feedback_to_ai": null,
-   "comment": "good identification of the external plane surface with circular graduation (d5=2) based on the drawing and the frozen manual worksheet."
+   "comment": "Good identification of six axial holes on a pitch circle diameter (d5 = 2, 'Axial on pitch circle diameter'), based on the drawing and the frozen manual worksheet.",
+   "comment_correction": {
+    "date": "13-11-2026",
+    "by": "Julissa M Barahona (team)",
+    "original_comment": "good identification of the external plane surface with circular graduation (d5=2) based on the drawing and the frozen manual worksheet.",
+    "reason": "The original wording described a d4 table row ('circular graduation'); the digit decision itself (d5 = 2) is unchanged."
+   }
   }
  }
 }
