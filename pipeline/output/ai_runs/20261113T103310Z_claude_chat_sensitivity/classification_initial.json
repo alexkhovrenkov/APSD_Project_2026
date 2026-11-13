@@ -1,0 +1,206 @@
+{
+ "part": "APSD-LATHE",
+ "digits": {
+  "d1": {
+   "digit": "1",
+   "course_table_row": "Rotational parts: 0.5 < L/D < 3",
+   "justification": "The manifest reports a single rotational part with L/D = 2.1. This value lies strictly between 0.5 and 3, so d1 row 1 applies. Per R5 the ratio is taken as reported and not recomputed.",
+   "course_rule_reference": "COURSE TABLE d1 row 1; DECISION RULES R1, R5",
+   "feature_evidence": [
+    {
+     "manifest_fact": "facts.length_to_diameter_ratio",
+     "observation": "value 2.1 (210 / 100), status known, confidence high"
+    },
+    {
+     "manifest_fact": "facts.overall_axial_length",
+     "observation": "210.0 mm, confidence high, agrees with feature-list profile"
+    },
+    {
+     "manifest_fact": "facts.max_relevant_diameter",
+     "observation": "100.0 mm (largest external coaxial cylinder), confidence high"
+    },
+    {
+     "manifest_fact": "facts.rotation_axis",
+     "observation": "single rotation axis along world X, 9 coaxial rotational faces, so the part is rotational"
+    }
+   ],
+   "uncertainty": "low",
+   "uncertainty_reason": "Both inputs have high confidence and 2.1 is far from both class boundaries (0.5 and 3). The only residual assumption is that the course's 'D' is the maximum diameter (the Ø100 section), which is the manifest's convention. The reviewer should confirm this against the course worksheet.",
+   "competing_candidates": []
+  },
+  "d2": {
+   "digit": "5",
+   "course_table_row": "Stepped both ends: Thread",
+   "justification": "The external diameter sequence from axial 0 is 29.9 → 60 → 100 → 50 mm. The maximum diameter (Ø100) is interior, with two diameter changes toward axial 0 and one toward the other end, so the outside is stepped toward both ends. An external thread is present on the Ø50 section. The CAD model has helical faces spanning about 82.7–210 mm near Ø50 with a 5 mm pitch parameter. The human-verified drawing callout confirms a thread on the long Ø50 shaft with pitch 5 and threaded length 125. No external groove exists in the evaluated geometry. The most specific supported row is therefore 'Stepped both ends: Thread'.",
+   "course_rule_reference": "COURSE TABLE d2 row 5; DECISION RULES R1, R2, R3, R6",
+   "feature_evidence": [
+    {
+     "manifest_fact": "facts.external_steps",
+     "observation": "diameter_sequence_from_axial_0_mm [29.9, 60.0, 100.0, 50.0]; max_diameter_position 'interior'; 2 changes toward axial 0, 1 toward axial max; monotonic_from_one_end false"
+    },
+    {
+     "manifest_fact": "facts.principal_diameters",
+     "observation": "Ø29.9 (0–20), Ø60 (20–55), Ø100 (60–80), Ø50 (85–210)"
+    },
+    {
+     "manifest_fact": "facts.external_thread_in_cad_model",
+     "observation": "modelled thread with pitch 5 mm and helical faces 18/19/20 spanning approx. 82.7–210 mm near Ø50; confidence medium"
+    },
+    {
+     "manifest_fact": "human_supplied_facts[0]",
+     "observation": "drawing tab 'APSD-LATHE-Final' verified 11-11-2026: thread present on long Ø50 shaft, pitch callout 5, threaded length callout 125"
+    },
+    {
+     "manifest_fact": "facts.grooves",
+     "observation": "absent in evaluated_geometry: the outer diameter sequence has no local minimum between larger diameters"
+    }
+   ],
+   "uncertainty": "medium",
+   "uncertainty_reason": "Stepping and thread presence are well supported, with the drawing confirming the thread, so the manifest's 'unknown' for facts.external_thread_on_physical_part is resolved by human_supplied_facts[0]. Three doubts remain. (1) The thread function (fastening vs. motion/power thread) is not in the manifest, and course row 8 is printed as 'Operating Speed', which may be a garbled 'operating thread'. (2) The threadCreator majorDiameter parameter (25 mm) contradicts the Ø50 geometry, and no thread designation or standard is recorded. (3) The protruding key-like feature on the Ø29.9 section is non-rotational and is handled in d4, not here.",
+   "competing_candidates": [
+    {
+     "digit": "4",
+     "why_not_chosen": "'Stepped both ends: No shape elements' would apply only if the thread were disregarded. Both the CAD model and the verified drawing callout show the thread."
+    },
+    {
+     "digit": "8",
+     "why_not_chosen": "The row text as printed ('Operating Speed') matches no manifest evidence. If the reviewer finds the source row means an operating (motion) thread and the drawing designates the Ø50 thread as one, this row would compete. Thread function cannot be derived from the manifest (R7, R9)."
+    },
+    {
+     "digit": "6",
+     "why_not_chosen": "'Stepped both ends: Groove' is not chosen because facts.grooves is absent in the evaluated geometry."
+    },
+    {
+     "digit": "2",
+     "why_not_chosen": "'Stepped one end or smooth: Thread' is not chosen because the external diameters are not monotonic from one end; the maximum is interior."
+    }
+   ]
+  },
+  "d3": {
+   "digit": "2",
+   "course_table_row": "Smooth or stepped on one end: Thread",
+   "justification": "The part has a continuous coaxial opening end to end. Internal diameters from axial 0 are Ø12 (0–41.42, opens at end 0), Ø13 (41.42–170) and Ø30 (170–210, opens at end 210). This sequence increases monotonically toward one end, so the bore is stepped toward one end only; no internal diameter is smaller than its neighbours on both sides. Helical internal faces near Ø12/Ø13 over approx. 0–42.3 mm and a pitch 2 mm thread parameter indicate an internal thread. The most specific supported row is 'Smooth or stepped on one end: Thread'.",
+   "course_rule_reference": "COURSE TABLE d3 row 2; DECISION RULES R1, R3, R6, R9",
+   "feature_evidence": [
+    {
+     "manifest_fact": "facts.bores_and_counterbores",
+     "observation": "internal coaxial cylinders Ø12 (0–41.42), Ø13 (41.42–170), Ø30 (170–210); continuous_axial_opening_end_to_end true; geometry authoritative over the Hole feature parameter Ø14"
+    },
+    {
+     "manifest_fact": "facts.internal_threads",
+     "observation": "thread parameter pitch 2 mm; helical faces 22/23/24 spanning approx. 0–42.3 mm near Ø12/Ø13; status known, confidence medium; threadCreator majorDiameter 25 mm inconsistent with geometry"
+    }
+   ],
+   "uncertainty": "medium",
+   "uncertainty_reason": "Three points need checking. (1) The internal thread is evidenced only in the CAD model (confidence medium), and no human-verified drawing callout exists for it, unlike the external thread. Its presence on the drawing must be confirmed. (2) The threadCreator major diameter (25 mm) and the Hole parameter (Ø14) disagree with the evaluated Ø12/Ø13 geometry, and the helical faces extend slightly past the Ø12/Ø13 step. (3) The bore has diameter changes near both ends (at 41.42 and 170 mm) and opens at both ends, so a reviewer reading 'stepped both ends' as 'steps near both ends' rather than 'diameter not monotonic' could choose row 5.",
+   "competing_candidates": [
+    {
+     "digit": "5",
+     "why_not_chosen": "'Stepped both ends: Thread' would apply under a reading where steps near both bore ends count. The internal diameter sequence 12 → 13 → 30 is monotonic from one end, so 'stepped on one end' fits better. The reviewer should confirm the course convention."
+    },
+    {
+     "digit": "1",
+     "why_not_chosen": "'Smooth or stepped on one end: No shape elements' applies only if the drawing does not call for the internal thread. The CAD model contains a modelled internal thread."
+    },
+    {
+     "digit": "3",
+     "why_not_chosen": "'Smooth or stepped on one end: Groove' is not chosen because the internal diameter sequence has no local maximum, so no internal groove appears in the reported bore geometry."
+    },
+    {
+     "digit": "8",
+     "why_not_chosen": "The row text as printed ('Operating Speed') matches no manifest evidence, and thread function is not derivable (R7, R9)."
+    }
+   ]
+  },
+  "d4": {
+   "digit": "1",
+   "course_table_row": "Surface plane/curved",
+   "justification": "Three planar faces parallel to the rotation axis exist on the Ø29.9 section (axial 0–20). One face sits 17.9 mm from the axis, about 7.98 mm wide by 20 mm long. Two parallel faces sit 3.99 mm either side, each about 3.49 mm high. Since 17.9 mm exceeds the Ø29.9 section radius of 14.95 mm, and the creating operation is ADD (extrude), these faces form a raised rectangular key/tab rather than flats cut into the cylinder. These are external plane surfaces with no slot, no polygon around the circumference and no indexed circular pattern. The closest row is 'Surface plane/curved'.",
+   "course_rule_reference": "COURSE TABLE d4 row 1; DECISION RULES R1, R4, R6",
+   "feature_evidence": [
+    {
+     "manifest_fact": "facts.plane_surface_features",
+     "observation": "3 planar faces parallel to the axis on Ø29.9 over axial 0–20 mm: JTO at 17.9 mm from the axis (area 159.6 mm²), JTS and JTC at 3.99 mm from the axis (69.846 mm² each); creating operation ADD (extrude) UP_TO_NEXT with 7.98/2, 7.98/2 and 17.9 mm dimensions"
+    },
+    {
+     "manifest_fact": "facts.principal_diameters",
+     "observation": "the section carrying the faces is Ø29.9 (radius 14.95 mm), smaller than the 17.9 mm face distance, so the faces protrude beyond the cylinder"
+    },
+    {
+     "manifest_fact": "facts.gear_teeth",
+     "observation": "no spline or tooth-pattern feature in the CAD feature list (scope cad_model_feature_list)"
+    }
+   ],
+   "uncertainty": "medium",
+   "uncertainty_reason": "Plane surfaces are clearly present. However, the course row text is terse, and the feature is a protruding key/tab, not a milled flat, so the reviewer must decide how the course treats it. The manifest does not say whether the tab is integral (milled from larger stock) or a separate fitted key, and that affects whether it counts as plane surface machining on this part.",
+   "competing_candidates": [
+    {
+     "digit": "2",
+     "why_not_chosen": "'External plane surface, circular graduation' is not chosen because the faces are one top face and two parallel side faces of a single tab, not a set of surfaces indexed around the axis."
+    },
+    {
+     "digit": "4",
+     "why_not_chosen": "'External spline (polygon)' is not chosen because a single tab is not a polygon or spline around the circumference, and no spline feature is in the feature list."
+    },
+    {
+     "digit": "3",
+     "why_not_chosen": "'External groove and/or slot' is not chosen because the feature adds material; no slot or groove cut into the surface is reported."
+    },
+    {
+     "digit": "9",
+     "why_not_chosen": "'All others' could apply if the reviewer decides a protruding key/tab is not a 'plane surface' in the course's sense. Row 1 matches the reported planar geometry more specifically."
+    }
+   ]
+  },
+  "d5": {
+   "digit": "0",
+   "course_table_row": "No auxiliary holes",
+   "justification": "The evaluated geometry contains no off-axis cylinder parallel to the axis and no cylinder perpendicular to it, so there are no axial or radial auxiliary holes. The CAD feature list has no gear, spline or tooth-pattern feature. The six non-analytic faces excluded from length measurement correspond to the six helical thread faces (18–20 external, 22–24 internal), leaving no unexplained geometry that could be gear teeth.",
+   "course_rule_reference": "COURSE TABLE d5 row 0; DECISION RULES R1, R3",
+   "feature_evidence": [
+    {
+     "manifest_fact": "facts.axial_holes",
+     "observation": "absent in evaluated_geometry: no off-axis cylinder parallel to the axis"
+    },
+    {
+     "manifest_fact": "facts.radial_holes",
+     "observation": "absent in evaluated_geometry: no cylinder perpendicular to the axis"
+    },
+    {
+     "manifest_fact": "facts.gear_teeth",
+     "observation": "absent, scope cad_model_feature_list, confidence medium"
+    },
+    {
+     "manifest_fact": "facts.external_thread_in_cad_model",
+     "observation": "helical faces 18, 19, 20 attributed to the external thread"
+    },
+    {
+     "manifest_fact": "facts.internal_threads",
+     "observation": "helical faces 22, 23, 24 attributed to the internal thread"
+    },
+    {
+     "manifest_fact": "facts.overall_axial_length",
+     "observation": "6 non-analytic faces in total, matching the 6 helical thread faces"
+    }
+   ],
+   "uncertainty": "low",
+   "uncertainty_reason": "Absence of holes is established within the full evaluated geometry. Gear-tooth absence is formally scoped to the CAD feature list (R3), so the drawing could in principle require teeth not modelled. The face accounting above makes this unlikely, but the reviewer should confirm against the drawing.",
+   "competing_candidates": []
+  }
+ },
+ "form_code": "15210",
+ "information_not_derivable_from_geometry": [
+  "Material (no material assigned in Onshape) — needed for supplementary digits, not assigned here (R8)",
+  "Initial stock form (bar, tube, forging, etc.)",
+  "Size class / supplementary digits d6–d9 and secondary operation code ABCD",
+  "Dimensional and geometric tolerances (all feature tolerance types are NONE)",
+  "Surface finish requirements",
+  "Thread designations, standards, tolerance classes and function (fastening vs. motion/operating thread) for both threads; CAD thread parameters are internally inconsistent (majorDiameter 25 mm vs. Ø50 and Ø12/Ø13 geometry)",
+  "Whether the internal thread is required on the drawing (only the external thread has a human-verified drawing callout)",
+  "Whether the raised key/tab on the Ø29.9 section is integral to the part or a separate fitted key, and how it is to be produced",
+  "Whether gear teeth or other features appear on the drawing but not in the CAD model (gear_teeth absence is scoped to the CAD feature list)",
+  "Mapping of manifest axial 0 to drawing left/right orientation",
+  "Heat treatment, coating or other secondary-operation requirements"
+ ],
+ "overall_notes": "Proposed form code 15210, to be checked by the human reviewer against the drawing and manual worksheet. Key review points:\n(1) d2 relies on human_supplied_facts[0] for the physical external thread, because facts.external_thread_on_physical_part is 'unknown' in the manifest.\n(2) d3 relies on a CAD-modelled internal thread with no drawing confirmation; if the drawing has no internal thread, d3 becomes 1. If the course reads 'stepped both ends' as steps near both bore ends, d3 becomes 5.\n(3) d4 is driven by a protruding key/tab (ADD extrude to 17.9 mm from the axis on the Ø29.9 section), not a cut flat; confirm how the course codes such a feature.\n(4) Rows 8 of d2/d3 are printed as 'Operating Speed', which matches no evidence and may be a transcription of 'operating thread' in the source. Please check the slide, as it could affect d2/d3 if either thread is a motion thread.\n(5) Model inconsistencies to resolve with the CAD owner: the Hole feature parameter is Ø14 vs. Ø12 evaluated geometry; the threadCreator majorDiameter of 25 mm matches neither threaded region; and the internal thread helical faces extend slightly beyond the Ø12/Ø13 step (≈42.3 vs. 41.42 mm).\nThe R5 fillets between Ø60/Ø100 and Ø100/Ø50 do not change any digit. Feature and file names (e.g. 'APSD-LATHE', 'flange', thread labels) were not used as evidence (R4)."
+}

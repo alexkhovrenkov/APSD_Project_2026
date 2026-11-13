@@ -9,6 +9,10 @@
                          manifest.json -> output/ai_runs/<run>_claude_chat_initial/chat_prompt.txt
   import-response RUN_DIR REPLY_FILE --model NAME [--date YYYY-MM-DD] [--operator NAME]
                          validate + archive Claude's pasted reply in RUN_DIR
+  sensitivity-setup TEST_EVIDENCE [--name N]
+                         changed-copy evidence -> output/sensitivity/<run>/ (manifest, diff, prediction form)
+  sensitivity-prompt SENS_DIR
+                         refuses until prediction.json is filled; then writes the chat prompt
   correct-run-meta RUN_DIR --reason TEXT [--model NAME] [--operator NAME] [--date YYYY-MM-DD]
                          fix operator-entered metadata in run_meta.json (logged, reply untouched)
   chat-revision RUN_DIR  human feedback (RUN_DIR/human_review.json) -> NEW run with revision_prompt.txt
@@ -32,9 +36,13 @@ MANIFEST_PATH = OUTPUT_DIR / "manifest.json"
 
 
 def _latest_evidence() -> Path:
-    runs = sorted((OUTPUT_DIR / "evidence").glob("*/extraction_record.json"))
+    """Newest evidence run whose target element is the configured target (so a sensitivity-test
+    tab extracted later can never silently replace the main manifest)."""
+    eid = get_target().element_id
+    runs = [r for r in sorted((OUTPUT_DIR / "evidence").glob("*/extraction_record.json"))
+            if json.loads(r.read_text(encoding="utf-8")).get("target", {}).get("element_id") == eid]
     if not runs:
-        raise SystemExit("No evidence found. Run: python -m apsd_pipeline extract")
+        raise SystemExit(f"No evidence for element {eid}. Run: python -m apsd_pipeline extract")
     return runs[-1].parent
 
 
@@ -63,8 +71,9 @@ def cmd_manifest(args) -> None:
 
     ev = Path(args.evidence) if args.evidence else _latest_evidence()
     manifest = build_manifest(ev)
-    write_manifest(manifest, MANIFEST_PATH)
-    print(f"manifest.json written and validated against schemas/feature_manifest.schema.json -> {MANIFEST_PATH}")
+    out = Path(args.out) if args.out else MANIFEST_PATH
+    write_manifest(manifest, out)
+    print(f"manifest written and validated against schemas/feature_manifest.schema.json -> {out}")
     f = manifest["facts"]
     for k in ("overall_axial_length", "max_relevant_diameter", "length_to_diameter_ratio"):
         print(f"  {k:28s} {f[k]['value']} {f[k]['unit'] or ''}  [{f[k]['status']}, {f[k]['confidence']}]")
@@ -119,11 +128,12 @@ def cmd_import_response(args) -> None:
     from .ai_handoff import import_chat_response
 
     run_dir = Path(args.run_dir).resolve()
-    manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
     ctx = json.loads((run_dir / "payload_context.json").read_text(encoding="utf-8"))
-    if ctx.get("manifest_sha256") and ctx["manifest_sha256"] != __import__("hashlib").sha256(
-            MANIFEST_PATH.read_text(encoding="utf-8").encode()).hexdigest():
-        raise SystemExit("output/manifest.json changed since this prompt was prepared; checks would use the wrong "
+    mpath = PIPELINE_DIR / ctx["manifest_file"] if ctx.get("manifest_file") else MANIFEST_PATH
+    mtext = mpath.read_text(encoding="utf-8")
+    manifest = json.loads(mtext)
+    if ctx.get("manifest_sha256") and ctx["manifest_sha256"] != __import__("hashlib").sha256(mtext.encode()).hexdigest():
+        raise SystemExit(f"{mpath} changed since this prompt was prepared; checks would use the wrong "
                          "manifest. Restore it or prepare a new run.")
     used_on = args.date or dt.date.today().isoformat()
     meta = import_chat_response(run_dir, Path(args.reply_file), args.model, args.interface, used_on, manifest,
@@ -171,6 +181,31 @@ python -m apsd_pipeline import-response {run_dir} <reply file> --model "<model n
 """)
 
 
+def cmd_sensitivity_setup(args) -> None:
+    from .sensitivity import setup
+
+    d = setup(Path(args.test_evidence).resolve(), Path(args.baseline_manifest).resolve() if args.baseline_manifest
+              else MANIFEST_PATH, OUTPUT_DIR, args.name)
+    print(f"""
+Sensitivity test prepared: {d}
+  manifest_test.json   manifest of the changed copy (validated)
+  change_summary.json  what differs from the baseline manifest (computed)
+  prediction.json      FILL THIS IN BEFORE ASKING CLAUDE: expected digits + reason + who + date
+Then: python -m apsd_pipeline sensitivity-prompt {d}
+""")
+
+
+def cmd_sensitivity_prompt(args) -> None:
+    from .sensitivity import make_prompt
+
+    run_dir = make_prompt(Path(args.sens_dir).resolve(), OUTPUT_DIR)
+    print(f"""
+Prediction locked (hash stored). Prompt ready: {run_dir / 'chat_prompt.txt'}
+Use a NEW claude.ai chat (not the earlier ones), same model if possible. Save the reply, then:
+python -m apsd_pipeline import-response {run_dir} {run_dir / 'reply.txt'} --model "<model name>" --operator "<your name>"
+""")
+
+
 def cmd_payload(_args) -> None:
     _, _, run_dir = _prepare("dryrun", True)
     print(f"Exact request payload saved (NOT sent): {run_dir / 'request_payload.json'}")
@@ -215,6 +250,7 @@ def main(argv: list[str] | None = None) -> None:
     p.set_defaults(fn=cmd_extract)
     p = sub.add_parser("manifest")
     p.add_argument("evidence", nargs="?")
+    p.add_argument("--out", default=None, help="write somewhere other than output/manifest.json")
     p.set_defaults(fn=cmd_manifest)
     p = sub.add_parser("chat-prompt")
     p.add_argument("--allow-preflight-gaps", action="store_true")
@@ -239,6 +275,14 @@ def main(argv: list[str] | None = None) -> None:
     p = sub.add_parser("chat-revision")
     p.add_argument("run_dir")
     p.set_defaults(fn=cmd_chat_revision)
+    p = sub.add_parser("sensitivity-setup")
+    p.add_argument("test_evidence", help="evidence folder of the changed CAD copy")
+    p.add_argument("--baseline-manifest", default=None, help="default: output/manifest.json")
+    p.add_argument("--name", default="sensitivity")
+    p.set_defaults(fn=cmd_sensitivity_setup)
+    p = sub.add_parser("sensitivity-prompt")
+    p.add_argument("sens_dir")
+    p.set_defaults(fn=cmd_sensitivity_prompt)
     sub.add_parser("payload").set_defaults(fn=cmd_payload)
     p = sub.add_parser("classify")
     p.add_argument("--allow-preflight-gaps", action="store_true")

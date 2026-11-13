@@ -1,0 +1,70 @@
+{
+ "record_type": "sensitivity_test_result",
+ "controlled_change": "In a copy of the APSD-LATHE-Final Part Studio (tab APSD-LATHE-Final-Sensitivity-Test) the six small axial holes (6 x 3.52 mm on the 46 mm pitch circle) were removed; nothing else was changed.",
+ "facts_changed_in_manifest": [
+  "axial_holes"
+ ],
+ "baseline": {
+  "code": "15212",
+  "manifest_run": "20261111T113317Z_hmac",
+  "element": "APSD-LATHE-Final"
+ },
+ "test": {
+  "manifest_run": "20261113T102859Z_hmac",
+  "element": "APSD-LATHE-Final-Sensitivity-Test",
+  "manifest": "output/sensitivity/20261113T103041Z_remove-axial-holes/manifest_test.json"
+ },
+ "prediction": {
+  "code": "15210",
+  "by": "Alexei Khovrenkov",
+  "on": "13-11-2026",
+  "locked_utc": "2026-11-13T10:33:10+00:00",
+  "sha256": "1f220c5f16ebe611c4443b5583f7fb7a3ce165b80feef8a6d93bf2a595ebc89e"
+ },
+ "ai_output": {
+  "run": "20261113T103310Z_claude_chat_sensitivity",
+  "code": "15210",
+  "model": "Opus 5.5 High",
+  "date_of_use": "2026-11-13",
+  "reply_saved_utc": "2026-11-13T10:39:23+00:00"
+ },
+ "per_digit": {
+  "d1": {
+   "baseline": "1",
+   "predicted": "1",
+   "ai": "1",
+   "ai_uncertainty": "low",
+   "prediction_met": true
+  },
+  "d2": {
+   "baseline": "5",
+   "predicted": "5",
+   "ai": "5",
+   "ai_uncertainty": "medium",
+   "prediction_met": true
+  },
+  "d3": {
+   "baseline": "2",
+   "predicted": "2",
+   "ai": "2",
+   "ai_uncertainty": "medium",
+   "prediction_met": true
+  },
+  "d4": {
+   "baseline": "1",
+   "predicted": "1",
+   "ai": "1",
+   "ai_uncertainty": "medium",
+   "prediction_met": true
+  },
+  "d5": {
+   "baseline": "2",
+   "predicted": "0",
+   "ai": "0",
+   "ai_uncertainty": "low",
+   "prediction_met": true
+  }
+ },
+ "observed": "AI code equals the prediction on all five digits. Only d5 changed (2 -> 0), the digit governed by the only changed manifest fact (axial_holes). d1-d4 stayed as in the baseline.",
+ "note": "Computed from the files listed above; human interpretation belongs in the report / human_review.json."
+}

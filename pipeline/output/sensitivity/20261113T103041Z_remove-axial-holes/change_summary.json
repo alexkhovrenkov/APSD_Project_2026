@@ -1,0 +1,102 @@
+{
+ "baseline": {
+  "element": "APSD-LATHE-Final",
+  "run": "20261111T113317Z_hmac",
+  "microversion": "6b0abea4f2d902aa1ae07fbc"
+ },
+ "test": {
+  "element": "APSD-LATHE-Final-Sensitivity-Test",
+  "run": "20261113T102859Z_hmac",
+  "microversion": "837f878f6b4ac115a7c0444e"
+ },
+ "facts_changed": {
+  "axial_holes": {
+   "baseline": {
+    "value": {
+     "patterns": [
+      {
+       "hole_diameter_mm": 3.52,
+       "count_of_cylinder_faces": 6,
+       "pitch_circle_diameter_mm": 46.0,
+       "angular_positions_deg": [
+        0.0,
+        60.0,
+        120.0,
+        180.0,
+        240.0,
+        300.0
+       ],
+       "equally_spaced": true,
+       "direction": "parallel to the rotation axis",
+       "pitch_circle_centred_on_axis": true
+      }
+     ],
+     "feature_list": [
+      {
+       "feature": "FzI8pwKmzptArjj_1",
+       "end_bound": "BLIND",
+       "depth_mm": 4.1,
+       "pitch_circle": {
+        "pitch_circle_diameter_mm": 46.0,
+        "count": 6,
+        "angular_gaps_deg": [
+         60.0,
+         60.0,
+         60.0,
+         60.0,
+         60.0,
+         60.0
+        ],
+        "equally_spaced": true,
+        "centre_reference": "sketch origin of the hole sketch (relation to the part axis: see manifest)"
+       }
+      }
+     ]
+    },
+    "status": "known"
+   },
+   "test": {
+    "value": false,
+    "status": "absent"
+   }
+  }
+ },
+ "facts_unchanged": [
+  "bores_and_counterbores",
+  "chamfers",
+  "external_steps",
+  "external_thread_in_cad_model",
+  "external_thread_on_physical_part",
+  "flange",
+  "gear_teeth",
+  "grooves",
+  "internal_threads",
+  "length_to_diameter_ratio",
+  "material",
+  "max_relevant_diameter",
+  "overall_axial_length",
+  "plane_surface_features",
+  "principal_diameters",
+  "radial_holes",
+  "radii_fillets",
+  "rotation_axis",
+  "stock_form",
+  "suppressed_or_failed_features",
+  "surface_finish",
+  "tolerances"
+ ],
+ "features_removed": [
+  {
+   "feature_type": "newSketch",
+   "feature_id": "FxWWAWKyJvPR0xS_1"
+  },
+  {
+   "feature_type": "extrude",
+   "feature_id": "FzI8pwKmzptArjj_1"
+  }
+ ],
+ "features_added": [],
+ "note": "Computed automatically by comparing fact values/status (evidence pointers ignored). Feature names are not compared because they are not evidence.",
+ "baseline_manifest": "output/manifest.json",
+ "test_evidence": "output/evidence/20261113T102859Z_hmac"
+}

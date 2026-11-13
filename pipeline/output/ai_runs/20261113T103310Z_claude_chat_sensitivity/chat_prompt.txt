@@ -1,0 +1,1765 @@
+=== INSTRUCTIONS ===
+You are assisting a student engineering team with OPITZ classification of one rotational part for a university course (Computer-Aided Process Planning).
+
+Task: propose the five-digit OPITZ FORM CODE (positions d1-d5) of the TARGET part.
+
+Inputs you receive, each in its own clearly delimited block:
+1. COURSE OPITZ TABLE - the only allowed digit definitions.
+2. DECISION RULES - how to treat evidence, unknowns and conflicts.
+3. LABELLED EXAMPLES - worked examples of OTHER parts. They show the method only; never copy their digits or features to the target.
+4. TARGET MANIFEST - JSON extracted from the team's Onshape CAD model by a script. It is the only description of the target part.
+
+Requirements:
+- Decide each position d1, d2, d3, d4, d5 separately, using only the course table rows.
+- For every position give: the digit (or "UNKNOWN"), the exact course table row you used, a concise justification, the manifest facts you used as evidence (fact key + the observation), your uncertainty (low/medium/high) with a reason, and any competing rows.
+- Return "UNKNOWN" when the evidence is insufficient. An honest UNKNOWN is better than a guess.
+- Respect each fact's "status", "scope" and "confidence". Facts marked unknown/not_retrieved are not evidence.
+- List information that cannot be derived from the CAD geometry alone in information_not_derivable_from_geometry.
+- Your answer is a proposal. A human engineer will check every digit against the drawing and a separate manual worksheet.
+
+=== COURSE OPITZ TABLE (digit definitions) ===
+{
+ "title": "OPITZ form code (digits 1-5) - course table",
+ "source": "Course slides 'APSD.Part 02. CAPPCAM.pdf' (CO-581-B PART02, Fall 2026), OPITZ table on the slide footed 'Page 36' (same table repeated on 'Page 39'); table credited there to Radhakrishnan, Subramanian & Raju, CAD/CAM/CIM, 3rd ed., 2005",
+ "sequence_definition": "d1 d2 d3 d4 d5 = form code; d6-d9 = supplementary code (size, material, initial stock form, accuracy); ABCD = optional secondary operation code (brief Part 00 P1, section 1.5.1). Only d1-d5 are requested from the AI.",
+ "digits": {
+  "d1": {
+   "meaning": "Part class",
+   "rows": {
+    "0": "Rotational parts: L/D <= 0.5",
+    "1": "Rotational parts: 0.5 < L/D < 3",
+    "2": "Rotational parts: L/D > 3",
+    "3": "Rotational parts: (no further text in table)",
+    "4": "Rotational parts: (no further text in table)",
+    "5": "Non rotational parts: (no further text in table)",
+    "6": "Non rotational parts: (no further text in table)",
+    "7": "Non rotational parts: (no further text in table)",
+    "8": "Non rotational parts: (no further text in table)",
+    "9": "Non rotational parts: (no further text in table)"
+   },
+   "table_gap_note": "The printed table does not state which class applies at exactly L/D = 3."
+  },
+  "d2": {
+   "meaning": "External shape, external shape elements",
+   "rows": {
+    "0": "Smoothing shape elements",
+    "1": "Stepped one end or smooth: No shape elements",
+    "2": "Stepped one end or smooth: Thread",
+    "3": "Stepped one end or smooth: Groove",
+    "4": "Stepped both ends: No shape elements",
+    "5": "Stepped both ends: Thread",
+    "6": "Stepped both ends: Groove",
+    "7": "Functional cone",
+    "8": "Operating Speed (as printed)",
+    "9": "All others"
+   }
+  },
+  "d3": {
+   "meaning": "Internal shape, internal shape elements",
+   "rows": {
+    "0": "No hole, no break through",
+    "1": "Smooth or stepped on one end: No shape elements",
+    "2": "Smooth or stepped on one end: Thread",
+    "3": "Smooth or stepped on one end: Groove",
+    "4": "Stepped both ends: No shape elements",
+    "5": "Stepped both ends: Thread",
+    "6": "Stepped both ends: Groove",
+    "7": "Functional cone",
+    "8": "Operating Speed (as printed)",
+    "9": "All others"
+   }
+  },
+  "d4": {
+   "meaning": "Plane surface machining",
+   "rows": {
+    "0": "No surface machining",
+    "1": "Surface plane/curved",
+    "2": "External plane surface, circular graduation",
+    "3": "External groove and/or slot",
+    "4": "External spline (polygon)",
+    "5": "External plane surface/slot spline",
+    "6": "Internal plane surface or slot",
+    "7": "Internal spline (polygon)",
+    "8": "Internal or slot/external polygon",
+    "9": "All others"
+   }
+  },
+  "d5": {
+   "meaning": "Auxiliary holes and gear teeth",
+   "rows": {
+    "0": "No auxiliary holes",
+    "1": "Axial, not on pitch circle dia",
+    "2": "Axial on pitch circle diameter",
+    "3": "Radial, not on pitch circle dia",
+    "4": "Radial, on pitch circle dia",
+    "5": "Axial and/radial and/other direction",
+    "6": "Spur gear teeth",
+    "7": "Bevel gear teeth",
+    "8": "Other gear teeth",
+    "9": "All others"
+   }
+  }
+ }
+}
+
+=== DECISION RULES ===
+{
+  "title": "Decision and precedence rules sent to the AI",
+  "status": "TEAM-DEFINED (approved 2026-11-11) - not course-supplied. The brief (section 1.6.3 a) asks the team to specify precedence rules for overlapping features; no instructor precedence rules were available. These rules are procedural (how to handle evidence and conflicts) and deliberately do not add OPITZ categories. Replace or extend with course rules when available.",
+  "approved_by": "Julissa Barahona (team)",
+  "approved_on": "2026-11-11",
+  "rules": [
+    {"id": "R1", "text": "Use only the TARGET MANIFEST and the COURSE TABLE. Every digit must cite manifest fact keys (facts.<key>) or human_supplied_facts entries as evidence."},
+    {"id": "R2", "text": "Facts with status 'unknown' or 'not_retrieved' are not evidence. If a digit depends on such a fact, return UNKNOWN for that digit and say which fact is missing."},
+    {"id": "R3", "text": "Status 'absent' is valid only inside its 'scope'. A scope of 'cad_model_feature_list' means the CAD model does not contain the feature; it does not prove that the physical part or the drawing lacks it. State this limitation in the uncertainty field when it matters."},
+    {"id": "R4", "text": "Feature names, labels and file names are not geometric evidence. Use dimensions, counts, directions and positions."},
+    {"id": "R5", "text": "d1 uses length_to_diameter_ratio (overall axial length / maximum relevant diameter) from the manifest. Do not recompute it from other numbers."},
+    {"id": "R6", "text": "When more than one table row is supported by the evidence for the same digit, choose the row that matches the most specific supported element in the course table, list every other supported row in competing_candidates with the reason it was not chosen, and set uncertainty to at least 'medium'. The human reviewer makes the final decision."},
+    {"id": "R7", "text": "If the evidence matches no row, or the course table text is not specific enough to decide (e.g. a boundary value the table does not cover), return UNKNOWN."},
+    {"id": "R8", "text": "Do not assign supplementary digits (d6-d9) or secondary operation codes: material, stock, size class and accuracy are not in the manifest."},
+    {"id": "R9", "text": "Do not invent dimensions, features, thread specifications, materials or tolerances that are not in the manifest."}
+  ]
+}
+
+
+=== LABELLED EXAMPLES (other parts - method only, NOT the target) ===
+[
+ {
+  "example_id": "EX1",
+  "source": "Course slides 'APSD.Part 02. CAPPCAM.pdf' (CO-581-B PART02, Fall 2026), slide footed 'Page 37'; example credited there to Radhakrishnan, Subramanian & Raju, CAD/CAM/CIM, 3rd ed., 2005",
+  "description_of_part": "Stepped rotational part with an external screw thread on its smaller end and an axial through hole (per the slide text). Dimension callouts exactly as printed on the slide drawing: 'M10 x 1.5', 'Dia.5', '1 x 45', '12.5', '20', '40', 'Dia.20', 'Dia.25', 'R2.5'.",
+  "form_code": "15100",
+  "digit_reasons": {
+   "d1": "Slide: 'The overall length/diameter ratio, L/D = 1.6, so the first code = 1.'",
+   "d2": "Slide: 'The part is stepped on both ends with a screw thread on one end, so the second digit code would be 5'",
+   "d3": "Slide: 'The third digit code is 1 because of the through hole.'",
+   "d4": "Slide: 'The fourth and fifth digits are both 0, since no surface machining is required and there are no auxiliary holes or gear teeth on the part.'",
+   "d5": "Slide: same sentence as d4 (no auxiliary holes or gear teeth)."
+  },
+  "difference_from_target": "This is a different, smaller part: it has no off-axis holes, no flat faces and a single plain through bore. It shows the METHOD only; the target must be classified solely from the TARGET MANIFEST.",
+  "validated_by": "Instructor-supplied worked example (Prof. Dr. Omid Fatahi Valilai, CAPP slides 'Page 37')",
+  "validated_on": "2026-11-02",
+  "transcribed_by": "pipeline author (Claude Code), 2026-11-11, quotes copied from the slide text",
+  "transcription_checked_by": null
+ }
+]
+
+=== TARGET MANIFEST (APSD-LATHE, extracted from Onshape) ===
+{
+  "schema": "apsd-lathe-feature-manifest",
+  "schema_version": "1.0",
+  "course_template_status": "Course template templates/feature_manifest.json (brief section 1.6.2) was not available; project schema schemas/feature_manifest.schema.json is used instead.",
+  "unknown_convention": {
+    "representation": "value = null together with status 'unknown' or 'not_retrieved' and a 'reason'",
+    "unknown": "evidence insufficient to decide",
+    "not_retrieved": "data source not accessed or access denied (e.g. HTTP 401)",
+    "absent": "complete evidence within 'scope' shows no such feature; not a statement beyond that scope"
+  },
+  "evidence_class": "LIVE_ONSHAPE_API",
+  "part": "APSD-LATHE",
+  "units": {
+    "length": "mm",
+    "angle": "deg",
+    "source_units": [
+      {
+        "source": "feature parameter expressions",
+        "unit": "as written in each expression",
+        "basis": "observed: quantity 'value' fields are 0.0 with empty 'units'; expression text carries the unit"
+      },
+      {
+        "source": "sketch geometry (pntX, radius, ...)",
+        "unit": "m",
+        "basis": "inferred: 9/9 dimension constraints in all sketches match geometry x 1000"
+      },
+      {
+        "source": "bodydetails coordinates",
+        "unit": "m",
+        "basis": "documented: 'All coordinates are in meters (m).' (getBodyDetails, Onshape OpenAPI)"
+      }
+    ]
+  },
+  "source": {
+    "geometry_source": "Onshape REST API (Path B): evaluated B-rep (bodydetails) + feature list cross-check",
+    "host": "https://cad.onshape.com",
+    "api_version": "v17",
+    "auth_mode": "hmac",
+    "document_id": "6877e7a6059a24d360e8c6e1",
+    "document_name": "APSD-LATHE-Team01",
+    "url_context": {
+      "wvm": "w",
+      "id": "008a5bb3f73e5b75f4629e14"
+    },
+    "element_id": "41adcdb6ccf7c41462f744ed",
+    "element_type": "PARTSTUDIO",
+    "element_name": "APSD-LATHE-Final-Sensitivity-Test",
+    "part": {
+      "value": {
+        "part_count": 1,
+        "part_id": "JID",
+        "part_name": "Part 1"
+      },
+      "unit": null,
+      "status": "known",
+      "provenance": "api_reported",
+      "evidence": [
+        {
+          "source": "onshape_api",
+          "ref": "05_parts.json"
+        }
+      ],
+      "confidence": "high",
+      "confidence_reason": "single visible solid part"
+    },
+    "configuration": {
+      "value": {
+        "configuration_parameters": 0,
+        "evaluated": "default (no configuration query sent)"
+      },
+      "unit": null,
+      "status": "known",
+      "provenance": "api_reported",
+      "evidence": [
+        {
+          "source": "onshape_api",
+          "ref": "06_configuration.json#/configurationParameters"
+        }
+      ],
+      "confidence": "high",
+      "confidence_reason": "configuration definition retrieved"
+    },
+    "drawing": null
+  },
+  "model_revision": {
+    "snapshot_microversion": "837f878f6b4ac115a7c0444e",
+    "snapshot_source": "02_workspace_microversion.json#/microversion",
+    "element_microversion": "e4e1e32e9b50ec710a3672f3",
+    "feature_list_source_microversion": "837f878f6b4ac115a7c0444e",
+    "default_workspace_microversion_start": "837f878f6b4ac115a7c0444e",
+    "default_workspace_microversion_end": "837f878f6b4ac115a7c0444e",
+    "revision_changed_during_extraction": false,
+    "revision_check_basis": "getDocumentWorkspaceMicroversion (currentmicroversion) at start and end"
+  },
+  "extraction": {
+    "run_id": "20261113T102859Z_hmac",
+    "timestamp_utc": "2026-11-13T10:28:59+00:00",
+    "evidence_dir": "output/evidence/20261113T102859Z_hmac",
+    "endpoints": {
+      "01_document": {
+        "status": 200,
+        "retrieved": true,
+        "file": "01_document.json"
+      },
+      "02_workspace_microversion": {
+        "status": 200,
+        "retrieved": true,
+        "file": "02_workspace_microversion.json"
+      },
+      "03_elements": {
+        "status": 200,
+        "retrieved": true,
+        "file": "03_elements.json"
+      },
+      "04_features": {
+        "status": 200,
+        "retrieved": true,
+        "file": "04_features.json"
+      },
+      "05_parts": {
+        "status": 200,
+        "retrieved": true,
+        "file": "05_parts.json"
+      },
+      "06_configuration": {
+        "status": 200,
+        "retrieved": true,
+        "file": "06_configuration.json"
+      },
+      "07_bodydetails": {
+        "status": 200,
+        "retrieved": true,
+        "file": "07_bodydetails.json"
+      },
+      "08_boundingboxes": {
+        "status": 200,
+        "retrieved": true,
+        "file": "08_boundingboxes.json"
+      },
+      "09_document_end": {
+        "status": 200,
+        "retrieved": true,
+        "file": "09_document_end.json"
+      },
+      "10_workspace_microversion_end": {
+        "status": 200,
+        "retrieved": true,
+        "file": "10_workspace_microversion_end.json"
+      }
+    },
+    "pipeline_version": "1.0.0",
+    "manifest_built_utc": "2026-11-13T10:30:41+00:00"
+  },
+  "facts": {
+    "rotation_axis": {
+      "value": {
+        "origin_mm": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "direction": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "frame": "Part Studio world coordinates",
+        "feature_tree_definition": {
+          "revolve": "FYIWnfYGm1s7a11_0",
+          "axis_sketch_entity": "Rj308cwR6Gtk"
+        }
+      },
+      "unit": null,
+      "status": "known",
+      "provenance": "geometrically_derived",
+      "evidence": [
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/2/surface"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/4/surface"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/6/surface"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/8/surface"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/10/surface"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/12/surface"
+        }
+      ],
+      "confidence": "high",
+      "confidence_reason": "9 coaxial rotational faces, largest total area of 1 axis groups; feature list: revolve FYIWnfYGm1s7a11_0 about sketch line Rj308cwR6Gtk"
+    },
+    "overall_axial_length": {
+      "value": 210.0,
+      "unit": "mm",
+      "status": "known",
+      "provenance": "geometrically_derived",
+      "evidence": [
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces",
+          "note": "face bounding boxes projected on the axis"
+        }
+      ],
+      "confidence": "high",
+      "confidence_reason": "21 analytic-face bounding boxes + 26 vertices projected on the axis (6 non-analytic faces excluded: their boxes are not tight); exact: axis parallel to a world axis; metres x 1000 (documented unit); feature-list profile gives 210 mm (agrees)",
+      "original": {
+        "unit": "m",
+        "range_m": [
+          -0.0,
+          0.21
+        ],
+        "conversion": "m x 1000 = mm"
+      }
+    },
+    "max_relevant_diameter": {
+      "value": 100.0,
+      "unit": "mm",
+      "status": "known",
+      "provenance": "geometrically_derived",
+      "evidence": [
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/8",
+          "note": "largest external coaxial cylinder"
+        }
+      ],
+      "confidence": "high",
+      "confidence_reason": "largest external cylinder coaxial with the rotation axis (radius x 2); feature-list profile gives 100 mm (agrees)"
+    },
+    "length_to_diameter_ratio": {
+      "value": 2.1,
+      "unit": null,
+      "status": "known",
+      "provenance": "geometrically_derived",
+      "evidence": [
+        {
+          "source": "derived",
+          "ref": "manifest.json#/facts/overall_axial_length"
+        },
+        {
+          "source": "derived",
+          "ref": "manifest.json#/facts/max_relevant_diameter"
+        }
+      ],
+      "confidence": "high",
+      "confidence_reason": "L/D = 210 / 100; confidence = lower of the two inputs"
+    },
+    "principal_diameters": {
+      "value": [
+        {
+          "axial_from_mm": 0.0,
+          "axial_to_mm": 20.0,
+          "diameter_mm": 29.9,
+          "length_mm": 20.0
+        },
+        {
+          "axial_from_mm": 20.0,
+          "axial_to_mm": 55.0,
+          "diameter_mm": 60.0,
+          "length_mm": 35.0
+        },
+        {
+          "axial_from_mm": 60.0,
+          "axial_to_mm": 80.0,
+          "diameter_mm": 100.0,
+          "length_mm": 20.0
+        },
+        {
+          "axial_from_mm": 85.0,
+          "axial_to_mm": 210.0,
+          "diameter_mm": 50.0,
+          "length_mm": 125.0
+        }
+      ],
+      "unit": "mm",
+      "status": "known",
+      "provenance": "geometrically_derived",
+      "evidence": [
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/2"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/10"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/8"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/6"
+        }
+      ],
+      "confidence": "high",
+      "confidence_reason": "external coaxial cylinders of the evaluated B-rep (spans shortened by fillets); axial 0 = end where the axis coordinate is smallest"
+    },
+    "external_steps": {
+      "value": {
+        "diameter_sequence_from_axial_0_mm": [
+          29.9,
+          60.0,
+          100.0,
+          50.0
+        ],
+        "diameter_changes": 3,
+        "max_diameter_position": "interior",
+        "diameter_changes_toward_axial_0": 2,
+        "diameter_changes_toward_axial_max": 1,
+        "monotonic_from_one_end": false
+      },
+      "unit": null,
+      "status": "known",
+      "provenance": "geometrically_derived",
+      "evidence": [
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/2"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/10"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/8"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/6"
+        }
+      ],
+      "confidence": "high",
+      "confidence_reason": "counted from external coaxial cylinders of the evaluated B-rep (spans shortened by fillets)"
+    },
+    "flange": {
+      "value": {
+        "diameter_mm": 100.0,
+        "axial_from_mm": 60.0,
+        "axial_to_mm": 80.0,
+        "length_mm": 20.0,
+        "adjacent_diameters_mm": [
+          60.0,
+          50.0
+        ],
+        "label_note": "'flange' = descriptive label for the maximum-diameter section; no CAD feature is named so"
+      },
+      "unit": "mm",
+      "status": "known",
+      "provenance": "geometrically_derived",
+      "evidence": [
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/8"
+        }
+      ],
+      "confidence": "high",
+      "confidence_reason": "maximum-diameter section with smaller diameters on both sides"
+    },
+    "grooves": {
+      "value": false,
+      "unit": null,
+      "status": "absent",
+      "provenance": "geometrically_derived",
+      "evidence": [
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/2"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/10"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/8"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/6"
+        }
+      ],
+      "confidence": "high",
+      "confidence_reason": "evaluated geometry checked",
+      "scope": "evaluated_geometry",
+      "reason": "the outer diameter sequence has no local minimum between larger diameters"
+    },
+    "bores_and_counterbores": {
+      "value": {
+        "items": [
+          {
+            "kind": "internal coaxial cylinder (bore)",
+            "diameter_mm": 12.0,
+            "axial_from_mm": 0.0,
+            "axial_to_mm": 41.42,
+            "length_mm": 41.42,
+            "opens_at_end": [
+              0.0
+            ],
+            "evidence": [
+              "07_bodydetails.json#/bodies/0/faces/26"
+            ]
+          },
+          {
+            "kind": "internal coaxial cylinder (bore)",
+            "diameter_mm": 13.0,
+            "axial_from_mm": 41.42,
+            "axial_to_mm": 170.0,
+            "length_mm": 128.58,
+            "opens_at_end": [],
+            "evidence": [
+              "07_bodydetails.json#/bodies/0/faces/14"
+            ]
+          },
+          {
+            "kind": "internal coaxial cylinder (bore)",
+            "diameter_mm": 30.0,
+            "axial_from_mm": 170.0,
+            "axial_to_mm": 210.0,
+            "length_mm": 40.0,
+            "opens_at_end": [
+              210.0
+            ],
+            "evidence": [
+              "07_bodydetails.json#/bodies/0/faces/4"
+            ]
+          },
+          {
+            "kind": "Hole feature (SIMPLE, custom / no thread standard)",
+            "hole_diameter_parameter_mm": 14.0,
+            "hole_depth_mm": 41.42,
+            "end_style": "BLIND",
+            "note": "feature parameters as entered; the evaluated geometry above is authoritative for diameters",
+            "evidence": [
+              "04_features.json#/features/3"
+            ]
+          }
+        ],
+        "continuous_axial_opening_end_to_end": true,
+        "opening_basis": "union of internal coaxial cylinder spans"
+      },
+      "unit": "mm",
+      "status": "known",
+      "provenance": "geometrically_derived",
+      "evidence": [
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/26"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/14"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/4"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "04_features.json#/features/3"
+        }
+      ],
+      "confidence": "high",
+      "confidence_reason": "internal coaxial cylinders of the evaluated B-rep (face orientation: face 'orientation' is undocumented; observed: false = material outside the cylinder (hole/internal), true = external surface (checked on 12/12 cylinders of the live part))"
+    },
+    "internal_threads": {
+      "value": {
+        "items": [
+          {
+            "source": "threadCreator feature (custom FeatureScript, modelled thread)",
+            "pitch_mm": 2.0,
+            "pitch_expression": "2 mm",
+            "label_as_reported": "0.5118-12.7",
+            "profile_as_reported": "ANSI_STD",
+            "major_diameter_parameter_mm": 25.0,
+            "length_type": "FULL",
+            "left_handed": false,
+            "status": "OK",
+            "evidence": [
+              "04_features.json#/features/9",
+              "04_features.json#/features/9/parameters/5/value",
+              "04_features.json#/features/9/parameters/7/expression"
+            ]
+          },
+          {
+            "source": "evaluated geometry: non-analytic (helical) faces located by loose bounding boxes",
+            "axial_span_mm_approx": [
+              0.0,
+              42.296
+            ],
+            "near_diameters_mm": [
+              12.0,
+              13.0
+            ],
+            "evidence": [
+              "07_bodydetails.json#/bodies/0/faces/22"
+            ]
+          },
+          {
+            "source": "evaluated geometry: non-analytic (helical) faces located by loose bounding boxes",
+            "axial_span_mm_approx": [
+              0.0,
+              42.293
+            ],
+            "near_diameters_mm": [
+              12.0,
+              13.0
+            ],
+            "evidence": [
+              "07_bodydetails.json#/bodies/0/faces/23"
+            ]
+          },
+          {
+            "source": "evaluated geometry: non-analytic (helical) faces located by loose bounding boxes",
+            "axial_span_mm_approx": [
+              0.0,
+              41.914
+            ],
+            "near_diameters_mm": [
+              12.0,
+              13.0
+            ],
+            "evidence": [
+              "07_bodydetails.json#/bodies/0/faces/24"
+            ]
+          }
+        ],
+        "consistency_notes": [
+          "threadCreator parameter majorDiameter = 25 mm matches none of the diameters at the threaded region [12.0, 13.0] mm; this third-party parameter is reported but not interpreted"
+        ]
+      },
+      "unit": "mm",
+      "status": "known",
+      "provenance": "api_reported",
+      "evidence": [
+        {
+          "source": "onshape_api",
+          "ref": "04_features.json#/features/9"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "04_features.json#/features/9/parameters/5/value"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "04_features.json#/features/9/parameters/7/expression"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/22"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/23"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/24"
+        }
+      ],
+      "confidence": "medium",
+      "confidence_reason": "thread features and/or evaluated geometry; see each item's source; inconsistencies recorded in consistency_notes"
+    },
+    "external_thread_in_cad_model": {
+      "value": {
+        "items": [
+          {
+            "source": "threadCreator feature (custom FeatureScript, modelled thread)",
+            "pitch_mm": 5.0,
+            "pitch_expression": "5 mm",
+            "label_as_reported": "1.9685-5.08",
+            "profile_as_reported": "ANSI_STD",
+            "major_diameter_parameter_mm": 25.0,
+            "length_type": "FULL",
+            "left_handed": false,
+            "status": "OK",
+            "evidence": [
+              "04_features.json#/features/8",
+              "04_features.json#/features/8/parameters/5/value",
+              "04_features.json#/features/8/parameters/7/expression"
+            ]
+          },
+          {
+            "source": "evaluated geometry: non-analytic (helical) faces located by loose bounding boxes",
+            "axial_span_mm_approx": [
+              82.987,
+              210.0
+            ],
+            "near_diameters_mm": [
+              50.0
+            ],
+            "evidence": [
+              "07_bodydetails.json#/bodies/0/faces/18"
+            ]
+          },
+          {
+            "source": "evaluated geometry: non-analytic (helical) faces located by loose bounding boxes",
+            "axial_span_mm_approx": [
+              82.683,
+              210.0
+            ],
+            "near_diameters_mm": [
+              50.0
+            ],
+            "evidence": [
+              "07_bodydetails.json#/bodies/0/faces/19"
+            ]
+          },
+          {
+            "source": "evaluated geometry: non-analytic (helical) faces located by loose bounding boxes",
+            "axial_span_mm_approx": [
+              82.671,
+              210.0
+            ],
+            "near_diameters_mm": [
+              50.0
+            ],
+            "evidence": [
+              "07_bodydetails.json#/bodies/0/faces/20"
+            ]
+          }
+        ],
+        "consistency_notes": [
+          "threadCreator parameter majorDiameter = 25 mm matches none of the diameters at the threaded region [50.0] mm; this third-party parameter is reported but not interpreted"
+        ]
+      },
+      "unit": "mm",
+      "status": "known",
+      "provenance": "api_reported",
+      "evidence": [
+        {
+          "source": "onshape_api",
+          "ref": "04_features.json#/features/8"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "04_features.json#/features/8/parameters/5/value"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "04_features.json#/features/8/parameters/7/expression"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/18"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/19"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/20"
+        }
+      ],
+      "confidence": "medium",
+      "confidence_reason": "thread features and/or evaluated geometry; see each item's source; inconsistencies recorded in consistency_notes"
+    },
+    "external_thread_on_physical_part": {
+      "value": null,
+      "unit": null,
+      "status": "unknown",
+      "provenance": "none",
+      "evidence": [],
+      "confidence": "none",
+      "confidence_reason": "no supporting evidence",
+      "reason": "not derivable from the API data: the physical requirement is defined by the drawing and CAD data show design intent only (see external_thread_in_cad_model). A human-verified drawing callout is given in human_supplied_facts[0]."
+    },
+    "radii_fillets": {
+      "value": [
+        {
+          "radius_mm": 5.0,
+          "type": "concave_blend",
+          "axial_span_mm": [
+            55.0,
+            60.0
+          ],
+          "between_diameters_mm": [
+            60.0,
+            100.0
+          ]
+        },
+        {
+          "radius_mm": 5.0,
+          "type": "concave_blend",
+          "axial_span_mm": [
+            80.0,
+            85.0
+          ],
+          "between_diameters_mm": [
+            100.0,
+            50.0
+          ]
+        }
+      ],
+      "unit": "mm",
+      "status": "known",
+      "provenance": "geometrically_derived",
+      "evidence": [
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/12"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/13"
+        }
+      ],
+      "confidence": "high",
+      "confidence_reason": "toroidal faces coaxial with the axis (minor radius = fillet radius); fillet feature reports 5 mm"
+    },
+    "chamfers": {
+      "value": false,
+      "unit": null,
+      "status": "absent",
+      "provenance": "api_reported",
+      "evidence": [
+        {
+          "source": "onshape_api",
+          "ref": "04_features.json#/features"
+        }
+      ],
+      "confidence": "high",
+      "confidence_reason": "evaluated geometry checked",
+      "scope": "evaluated_geometry",
+      "reason": "no chamfer feature and no conical face"
+    },
+    "axial_holes": {
+      "value": false,
+      "unit": null,
+      "status": "absent",
+      "provenance": "api_reported",
+      "evidence": [
+        {
+          "source": "onshape_api",
+          "ref": "04_features.json#/features"
+        }
+      ],
+      "confidence": "high",
+      "confidence_reason": "evaluated geometry checked",
+      "scope": "evaluated_geometry",
+      "reason": "no off-axis cylinder parallel to the axis"
+    },
+    "radial_holes": {
+      "value": false,
+      "unit": null,
+      "status": "absent",
+      "provenance": "geometrically_derived",
+      "evidence": [
+        {
+          "source": "onshape_api",
+          "ref": "04_features.json#/features"
+        }
+      ],
+      "confidence": "high",
+      "confidence_reason": "evaluated geometry checked",
+      "scope": "evaluated_geometry",
+      "reason": "no cylinder perpendicular to the axis"
+    },
+    "plane_surface_features": {
+      "value": {
+        "planar_faces_parallel_to_axis": [
+          {
+            "face_id": "JTO",
+            "distance_from_axis_mm": 17.9,
+            "axial_span_mm": [
+              0.0,
+              20.0
+            ],
+            "area_mm2": 159.6,
+            "on_diameter_mm": 29.9
+          },
+          {
+            "face_id": "JTS",
+            "distance_from_axis_mm": 3.99,
+            "axial_span_mm": [
+              0.0,
+              20.0
+            ],
+            "area_mm2": 69.846,
+            "on_diameter_mm": 29.9
+          },
+          {
+            "face_id": "JTC",
+            "distance_from_axis_mm": 3.99,
+            "axial_span_mm": [
+              0.0,
+              20.0
+            ],
+            "area_mm2": 69.846,
+            "on_diameter_mm": 29.9
+          }
+        ],
+        "creating_features": [
+          {
+            "feature": "FichdOqCMbVYUO9_1",
+            "operation": "ADD (extrude)",
+            "end_bound": "UP_TO_NEXT",
+            "dimensions_as_entered": [
+              "(7.98/2) mm",
+              "(7.98/2) mm",
+              "17.9 mm"
+            ],
+            "pointer": "04_features.json#/features/7"
+          }
+        ],
+        "description": "planar faces parallel to the rotation axis (not end faces or shoulders)"
+      },
+      "unit": "mm",
+      "status": "known",
+      "provenance": "geometrically_derived",
+      "evidence": [
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/15"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/16"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "07_bodydetails.json#/bodies/0/faces/17"
+        },
+        {
+          "source": "onshape_api",
+          "ref": "04_features.json#/features/7"
+        }
+      ],
+      "confidence": "high",
+      "confidence_reason": "plane normals perpendicular to the axis in evaluated geometry"
+    },
+    "gear_teeth": {
+      "value": false,
+      "unit": null,
+      "status": "absent",
+      "provenance": "api_reported",
+      "evidence": [
+        {
+          "source": "onshape_api",
+          "ref": "04_features.json#/features"
+        }
+      ],
+      "confidence": "medium",
+      "confidence_reason": "complete feature list checked; scope limited to the CAD model",
+      "scope": "cad_model_feature_list",
+      "reason": "no gear, spline or tooth-pattern feature"
+    },
+    "material": {
+      "value": null,
+      "unit": null,
+      "status": "unknown",
+      "provenance": "none",
+      "evidence": [
+        {
+          "source": "onshape_api",
+          "ref": "05_parts.json#/0/material"
+        }
+      ],
+      "confidence": "none",
+      "confidence_reason": "no supporting evidence",
+      "reason": "no material is assigned to the part in Onshape (05_parts.json material = null)"
+    },
+    "stock_form": {
+      "value": null,
+      "unit": null,
+      "status": "unknown",
+      "provenance": "none",
+      "evidence": [],
+      "confidence": "none",
+      "confidence_reason": "no supporting evidence",
+      "reason": "initial stock form is a manufacturing decision; not encoded in CAD data"
+    },
+    "tolerances": {
+      "value": null,
+      "unit": null,
+      "status": "unknown",
+      "provenance": "none",
+      "evidence": [],
+      "confidence": "none",
+      "confidence_reason": "no supporting evidence",
+      "reason": "no tolerance data in the retrieved CAD data (feature tolerance types are NONE)"
+    },
+    "surface_finish": {
+      "value": null,
+      "unit": null,
+      "status": "unknown",
+      "provenance": "none",
+      "evidence": [],
+      "confidence": "none",
+      "confidence_reason": "no supporting evidence",
+      "reason": "not encoded in retrieved CAD data"
+    },
+    "suppressed_or_failed_features": {
+      "value": {
+        "excluded_from_geometry": [],
+        "non_ok_status": [
+          {
+            "index": 3,
+            "feature_id": "FqsGKe4RkoFjgg4_1",
+            "feature_type": "hole",
+            "name_as_entered": "#featureName",
+            "suppressed": false,
+            "status": "INFO",
+            "inactive": false,
+            "used_for_geometry": true,
+            "pointer": "04_features.json#/features/3"
+          }
+        ],
+        "feature_list_complete": true,
+        "microversion_skew": false
+      },
+      "unit": null,
+      "status": "known",
+      "provenance": "api_reported",
+      "evidence": [
+        {
+          "source": "onshape_api",
+          "ref": "04_features.json#/featureStates"
+        }
+      ],
+      "confidence": "high",
+      "confidence_reason": "featureStates and suppressed flags reported for every feature"
+    }
+  },
+  "human_supplied_facts": [
+    {
+      "fact": "external_thread_on_physical_part",
+      "value": {
+        "present": true,
+        "region": "long Ø50 shaft section opposite the small end",
+        "pitch_callout_mm": 5,
+        "region_length_callout_mm": 125
+      },
+      "unit": "mm",
+      "provenance": "human_supplied",
+      "source": "Onshape drawing tab 'APSD-LATHE-Final' (element 39fec93b315c33208dd4a282): thread on the long Ø50 shaft, pitch callout '5', threaded length '125' - confirmed on this tab by the verifiers",
+      "verified_by": "Ezgi Kutlu & Mario Iraheta",
+      "verified_on": "11-11-2026",
+      "note": "Verified 11-11-2026 against the APSD-LATHE-Final drawing tab (team confirmation relayed by Julissa Barahona). No thread designation, standard or tolerance class recorded here."
+    }
+  ],
+  "feature_inventory": [
+    {
+      "index": 0,
+      "feature_id": "FyIA03Ek8gCE093_0",
+      "feature_type": "newSketch",
+      "name_as_entered": "Y0",
+      "suppressed": false,
+      "status": "OK",
+      "inactive": false,
+      "used_for_geometry": true,
+      "pointer": "04_features.json#/features/0"
+    },
+    {
+      "index": 1,
+      "feature_id": "FYIWnfYGm1s7a11_0",
+      "feature_type": "revolve",
+      "name_as_entered": "Revolve 1",
+      "suppressed": false,
+      "status": "OK",
+      "inactive": false,
+      "used_for_geometry": true,
+      "pointer": "04_features.json#/features/1"
+    },
+    {
+      "index": 2,
+      "feature_id": "FL1XVW4r1rqaGx1_1",
+      "feature_type": "fillet",
+      "name_as_entered": "Fillet 1",
+      "suppressed": false,
+      "status": "OK",
+      "inactive": false,
+      "used_for_geometry": true,
+      "pointer": "04_features.json#/features/2"
+    },
+    {
+      "index": 3,
+      "feature_id": "FqsGKe4RkoFjgg4_1",
+      "feature_type": "hole",
+      "name_as_entered": "#featureName",
+      "suppressed": false,
+      "status": "INFO",
+      "inactive": false,
+      "used_for_geometry": true,
+      "pointer": "04_features.json#/features/3"
+    },
+    {
+      "index": 4,
+      "feature_id": "FplqpiOqrXD6X0C_1",
+      "feature_type": "newSketch",
+      "name_as_entered": "Y170",
+      "suppressed": false,
+      "status": "OK",
+      "inactive": false,
+      "used_for_geometry": true,
+      "pointer": "04_features.json#/features/4"
+    },
+    {
+      "index": 5,
+      "feature_id": "FnFiH5Y4UDMPGEo_1",
+      "feature_type": "extrude",
+      "name_as_entered": "Y170",
+      "suppressed": false,
+      "status": "OK",
+      "inactive": false,
+      "used_for_geometry": true,
+      "pointer": "04_features.json#/features/5"
+    },
+    {
+      "index": 6,
+      "feature_id": "Fye6slPNEHCDKKz_1",
+      "feature_type": "newSketch",
+      "name_as_entered": "Y0-2",
+      "suppressed": false,
+      "status": "OK",
+      "inactive": false,
+      "used_for_geometry": true,
+      "pointer": "04_features.json#/features/6"
+    },
+    {
+      "index": 7,
+      "feature_id": "FichdOqCMbVYUO9_1",
+      "feature_type": "extrude",
+      "name_as_entered": "Y0-2",
+      "suppressed": false,
+      "status": "OK",
+      "inactive": false,
+      "used_for_geometry": true,
+      "pointer": "04_features.json#/features/7"
+    },
+    {
+      "index": 8,
+      "feature_id": "FcgoTN3rKMlWkkt_1",
+      "feature_type": "threadCreator",
+      "name_as_entered": "#screwfriendlyname",
+      "suppressed": false,
+      "status": "OK",
+      "inactive": false,
+      "used_for_geometry": true,
+      "pointer": "04_features.json#/features/8"
+    },
+    {
+      "index": 9,
+      "feature_id": "FpC7JpqiGAiecP3_1",
+      "feature_type": "threadCreator",
+      "name_as_entered": "#screwfriendlyname",
+      "suppressed": false,
+      "status": "OK",
+      "inactive": false,
+      "used_for_geometry": true,
+      "pointer": "04_features.json#/features/9"
+    }
+  ],
+  "unknowns": [
+    {
+      "fact": "external_thread_on_physical_part",
+      "status": "unknown",
+      "reason": "not derivable from the API data: the physical requirement is defined by the drawing and CAD data show design intent only (see external_thread_in_cad_model). A human-verified drawing callout is given in human_supplied_facts[0]."
+    },
+    {
+      "fact": "material",
+      "status": "unknown",
+      "reason": "no material is assigned to the part in Onshape (05_parts.json material = null)"
+    },
+    {
+      "fact": "stock_form",
+      "status": "unknown",
+      "reason": "initial stock form is a manufacturing decision; not encoded in CAD data"
+    },
+    {
+      "fact": "tolerances",
+      "status": "unknown",
+      "reason": "no tolerance data in the retrieved CAD data (feature tolerance types are NONE)"
+    },
+    {
+      "fact": "surface_finish",
+      "status": "unknown",
+      "reason": "not encoded in retrieved CAD data"
+    }
+  ],
+  "limitations": [
+    "Evaluated-geometry facts use face 'orientation' (undocumented) to separate internal from external faces: face 'orientation' is undocumented; observed: false = material outside the cylinder (hole/internal), true = external surface (checked on 12/12 cylinders of the live part).",
+    "Feature names are reported as entered but never used as geometric evidence.",
+    "Thread data come from feature parameters (Hole, thread features, custom threadCreator) and, where modelled, helical faces located only approximately (their bounding boxes are not tight); thread form, class and tolerance are not measured.",
+    "Some feature-list references (revolve axis line, fillet edges, profile sketches, sketch planes) are decoded from Onshape's undocumented qCompressed query text.",
+    "Sketch-geometry units are undocumented; inferred by cross-checking dimension constraints: 9/9 dimension constraints in all sketches match geometry x 1000.",
+    "Axial coordinates start at the end with the smallest axis coordinate; mapping to drawing left/right is a human check.",
+    "Material, stock, tolerances and surface finish are not derivable from geometry."
+  ]
+}
+
+
+Return the d1-d5 proposal for the TARGET in the required JSON format.
+
+=== REQUIRED OUTPUT FORMAT ===
+Reply with ONE JSON object only: no markdown code fences and no text before or after it. It must validate against this JSON Schema (every field is required; use "UNKNOWN" as the digit when evidence is insufficient):
+{
+ "type": "object",
+ "additionalProperties": false,
+ "required": [
+  "part",
+  "digits",
+  "form_code",
+  "information_not_derivable_from_geometry",
+  "overall_notes"
+ ],
+ "properties": {
+  "part": {
+   "type": "string"
+  },
+  "digits": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "d1",
+    "d2",
+    "d3",
+    "d4",
+    "d5"
+   ],
+   "properties": {
+    "d1": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "digit",
+      "course_table_row",
+      "justification",
+      "course_rule_reference",
+      "feature_evidence",
+      "uncertainty",
+      "uncertainty_reason",
+      "competing_candidates"
+     ],
+     "properties": {
+      "digit": {
+       "type": "string",
+       "enum": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "UNKNOWN"
+       ]
+      },
+      "course_table_row": {
+       "type": "string",
+       "description": "Row text from the COURSE OPITZ TABLE, or empty if UNKNOWN"
+      },
+      "justification": {
+       "type": "string"
+      },
+      "course_rule_reference": {
+       "type": "string",
+       "description": "e.g. 'COURSE TABLE d2 row 5; DECISION RULE R6'"
+      },
+      "feature_evidence": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+         "manifest_fact",
+         "observation"
+        ],
+        "properties": {
+         "manifest_fact": {
+          "type": "string",
+          "description": "facts.<key> or human_supplied_facts[<i>]"
+         },
+         "observation": {
+          "type": "string"
+         }
+        }
+       }
+      },
+      "uncertainty": {
+       "type": "string",
+       "enum": [
+        "low",
+        "medium",
+        "high"
+       ]
+      },
+      "uncertainty_reason": {
+       "type": "string"
+      },
+      "competing_candidates": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+         "digit",
+         "why_not_chosen"
+        ],
+        "properties": {
+         "digit": {
+          "type": "string"
+         },
+         "why_not_chosen": {
+          "type": "string"
+         }
+        }
+       }
+      }
+     }
+    },
+    "d2": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "digit",
+      "course_table_row",
+      "justification",
+      "course_rule_reference",
+      "feature_evidence",
+      "uncertainty",
+      "uncertainty_reason",
+      "competing_candidates"
+     ],
+     "properties": {
+      "digit": {
+       "type": "string",
+       "enum": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "UNKNOWN"
+       ]
+      },
+      "course_table_row": {
+       "type": "string",
+       "description": "Row text from the COURSE OPITZ TABLE, or empty if UNKNOWN"
+      },
+      "justification": {
+       "type": "string"
+      },
+      "course_rule_reference": {
+       "type": "string",
+       "description": "e.g. 'COURSE TABLE d2 row 5; DECISION RULE R6'"
+      },
+      "feature_evidence": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+         "manifest_fact",
+         "observation"
+        ],
+        "properties": {
+         "manifest_fact": {
+          "type": "string",
+          "description": "facts.<key> or human_supplied_facts[<i>]"
+         },
+         "observation": {
+          "type": "string"
+         }
+        }
+       }
+      },
+      "uncertainty": {
+       "type": "string",
+       "enum": [
+        "low",
+        "medium",
+        "high"
+       ]
+      },
+      "uncertainty_reason": {
+       "type": "string"
+      },
+      "competing_candidates": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+         "digit",
+         "why_not_chosen"
+        ],
+        "properties": {
+         "digit": {
+          "type": "string"
+         },
+         "why_not_chosen": {
+          "type": "string"
+         }
+        }
+       }
+      }
+     }
+    },
+    "d3": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "digit",
+      "course_table_row",
+      "justification",
+      "course_rule_reference",
+      "feature_evidence",
+      "uncertainty",
+      "uncertainty_reason",
+      "competing_candidates"
+     ],
+     "properties": {
+      "digit": {
+       "type": "string",
+       "enum": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "UNKNOWN"
+       ]
+      },
+      "course_table_row": {
+       "type": "string",
+       "description": "Row text from the COURSE OPITZ TABLE, or empty if UNKNOWN"
+      },
+      "justification": {
+       "type": "string"
+      },
+      "course_rule_reference": {
+       "type": "string",
+       "description": "e.g. 'COURSE TABLE d2 row 5; DECISION RULE R6'"
+      },
+      "feature_evidence": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+         "manifest_fact",
+         "observation"
+        ],
+        "properties": {
+         "manifest_fact": {
+          "type": "string",
+          "description": "facts.<key> or human_supplied_facts[<i>]"
+         },
+         "observation": {
+          "type": "string"
+         }
+        }
+       }
+      },
+      "uncertainty": {
+       "type": "string",
+       "enum": [
+        "low",
+        "medium",
+        "high"
+       ]
+      },
+      "uncertainty_reason": {
+       "type": "string"
+      },
+      "competing_candidates": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+         "digit",
+         "why_not_chosen"
+        ],
+        "properties": {
+         "digit": {
+          "type": "string"
+         },
+         "why_not_chosen": {
+          "type": "string"
+         }
+        }
+       }
+      }
+     }
+    },
+    "d4": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "digit",
+      "course_table_row",
+      "justification",
+      "course_rule_reference",
+      "feature_evidence",
+      "uncertainty",
+      "uncertainty_reason",
+      "competing_candidates"
+     ],
+     "properties": {
+      "digit": {
+       "type": "string",
+       "enum": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "UNKNOWN"
+       ]
+      },
+      "course_table_row": {
+       "type": "string",
+       "description": "Row text from the COURSE OPITZ TABLE, or empty if UNKNOWN"
+      },
+      "justification": {
+       "type": "string"
+      },
+      "course_rule_reference": {
+       "type": "string",
+       "description": "e.g. 'COURSE TABLE d2 row 5; DECISION RULE R6'"
+      },
+      "feature_evidence": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+         "manifest_fact",
+         "observation"
+        ],
+        "properties": {
+         "manifest_fact": {
+          "type": "string",
+          "description": "facts.<key> or human_supplied_facts[<i>]"
+         },
+         "observation": {
+          "type": "string"
+         }
+        }
+       }
+      },
+      "uncertainty": {
+       "type": "string",
+       "enum": [
+        "low",
+        "medium",
+        "high"
+       ]
+      },
+      "uncertainty_reason": {
+       "type": "string"
+      },
+      "competing_candidates": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+         "digit",
+         "why_not_chosen"
+        ],
+        "properties": {
+         "digit": {
+          "type": "string"
+         },
+         "why_not_chosen": {
+          "type": "string"
+         }
+        }
+       }
+      }
+     }
+    },
+    "d5": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "digit",
+      "course_table_row",
+      "justification",
+      "course_rule_reference",
+      "feature_evidence",
+      "uncertainty",
+      "uncertainty_reason",
+      "competing_candidates"
+     ],
+     "properties": {
+      "digit": {
+       "type": "string",
+       "enum": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "UNKNOWN"
+       ]
+      },
+      "course_table_row": {
+       "type": "string",
+       "description": "Row text from the COURSE OPITZ TABLE, or empty if UNKNOWN"
+      },
+      "justification": {
+       "type": "string"
+      },
+      "course_rule_reference": {
+       "type": "string",
+       "description": "e.g. 'COURSE TABLE d2 row 5; DECISION RULE R6'"
+      },
+      "feature_evidence": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+         "manifest_fact",
+         "observation"
+        ],
+        "properties": {
+         "manifest_fact": {
+          "type": "string",
+          "description": "facts.<key> or human_supplied_facts[<i>]"
+         },
+         "observation": {
+          "type": "string"
+         }
+        }
+       }
+      },
+      "uncertainty": {
+       "type": "string",
+       "enum": [
+        "low",
+        "medium",
+        "high"
+       ]
+      },
+      "uncertainty_reason": {
+       "type": "string"
+      },
+      "competing_candidates": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+         "digit",
+         "why_not_chosen"
+        ],
+        "properties": {
+         "digit": {
+          "type": "string"
+         },
+         "why_not_chosen": {
+          "type": "string"
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "form_code": {
+   "type": "string",
+   "description": "Five characters, positions d1 to d5 in order; write the letter U for a position whose digit is UNKNOWN."
+  },
+  "information_not_derivable_from_geometry": {
+   "type": "array",
+   "items": {
+    "type": "string"
+   }
+  },
+  "overall_notes": {
+   "type": "string"
+  }
+ }
+}

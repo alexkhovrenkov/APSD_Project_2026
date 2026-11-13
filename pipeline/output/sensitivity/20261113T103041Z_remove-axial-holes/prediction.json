@@ -1,0 +1,17 @@
+{
+ "record_type": "sensitivity_prediction",
+ "instructions": "Fill in BEFORE asking the AI. State the controlled change in your own words, the digits you expect the AI to return for the CHANGED part, and why. A small change may legitimately leave the code unchanged - then say why.",
+ "controlled_change": "In a copy of the APSD-LATHE-Final Part Studio (tab APSD-LATHE-Final-Sensitivity-Test) the six small axial holes (6 x 3.52 mm on the 46 mm pitch circle) were removed; nothing else was changed.",
+ "baseline_final_code": "15212",
+ "expected_digits": {
+  "d1": "1",
+  "d2": "5",
+  "d3": "2",
+  "d4": "1",
+  "d5": "0"
+ },
+ "expected_effect_reasoning": "We expect the the new opitz code to be 15210 because we removed the six small holes therefore the shape has now no auxiliry holes not dear teeth.",
+ "predicted_by": "Alexei Khovrenkov",
+ "predicted_on": "13-11-2026",
+ "recorded_by": "pipeline author on behalf of the team (reasoning copied verbatim)"
+}

@@ -1,0 +1,19 @@
+{
+ "provider": "Anthropic",
+ "model_designation": "Opus 5.5 High",
+ "model_designation_source": "as shown in the chat interface's model selector, entered by the operator",
+ "interface": "claude.ai web chat (manual paste)",
+ "date_of_use": "2026-11-13",
+ "operator": "Julissa M Barahona",
+ "conversation_ref": null,
+ "imported_utc": "2026-11-13T10:39:33+00:00",
+ "prompt_file": "chat_prompt.txt",
+ "chat_prompt_sha256": "40750b4bb24a159dac66b84210850d261c1f2cc787260cac51ad65052beb301d",
+ "manifest_sha256": "2a79c45908fe8d186026e6f5163e50314833d7774e828bfdea0f1244f9b7132f",
+ "parent_run": null,
+ "structured_output_enforcement": "none (chat); checked after import",
+ "json_extraction": "whole reply was JSON",
+ "response_raw_sha256": "c89119f0b6ad274e1377ace0f4c19499e7b8d0ed38136d2a5251ba6cdc300d6e",
+ "outcome": "parsed",
+ "form_code_proposed": "15210"
+}
