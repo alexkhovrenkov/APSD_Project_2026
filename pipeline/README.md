@@ -15,7 +15,7 @@ Onshape document ──(read-only API GET)──▶ Onshape JSON responses
 > **Current status (2026-11-11).**
 > * **Target:** the Part Studio tab **APSD-LATHE-Final** (`147da5f19a2ac767328e5f7f`) and the drawing tab **APSD-LATHE-Final** (`39fec93b315c33208dd4a282`) of the team document, as instructed by the team. Earlier runs used the tab now named "WIP"; they stay archived.
 > * Authenticated extraction works: all 11 calls returned HTTP 200. `manifest.json` is built from evaluated geometry and cross-checked against the feature list.
-> * **No Claude run has been made yet.** See [§6](#6-what-has-run-and-what-is-pending).
+> * **Claude runs done (Opus 5.5 High, claude.ai):** initial 15212, after feedback 152U2, sensitivity test 15210 (as predicted). The team's final code is **15212**. See [§6](#6-what-has-run-and-what-is-pending).
 
 ---
 
@@ -220,8 +220,9 @@ Run `20261111T113317Z_hmac` (authenticated, tab APSD-LATHE-Final), overall lengt
 | Manifest validation | ✅ against `schemas/feature_manifest.schema.json` |
 | Redaction | ✅ no owner names, user IDs or auth material in `output/` (grep). Unit tests pass |
 | Chat prompt + import | ✅ prompt built from the live manifest. Import tested end to end with a SYNTHETIC reply in a scratch folder (not in the repo) |
-| Claude classification | ⏳ **not run**: needs the preflight items below, then a team member on claude.ai |
-| Human review | ⏳ not started |
+| Claude classification | ✅ `output/ai_runs/20261111T120647Z_claude_chat_initial` (Opus 5.5 High, 2026-11-11): **15212**, schema valid, no evidence findings |
+| Human review + correction round | ✅ review agrees on d1–d3 and d5. d4 was overridden to 0, the feedback round (`20261111T124734Z_claude_chat_revised`) gave **152U2**, and after re-checking the drawing the team set d4 = 1. **Final 15212** |
+| Sensitivity test | ✅ six axial holes removed in tab APSD-LATHE-Final-Sensitivity-Test. Prediction 15210 locked 10:33 UTC; Claude (`20261113T103310Z_claude_chat_sensitivity`) returned **15210**. Record: `output/sensitivity/20261113T103041Z_remove-axial-holes/` |
 | Offline tests | ✅ `python -m pytest -q`: 57 passed (includes regression tests on the archived WIP runs and the Final run) |
 
 **To finish the workflow**
