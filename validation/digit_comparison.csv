@@ -1,0 +1,6 @@
+position,attribute,manual,ai_initial,ai_revised,final,initial_agreement,root_cause_or_justification
+d1,Part class,1,1,1,1,yes,L/D = 2.1 lies in row 1 (rotational 0.5 < L/D < 3)
+d2,External shape,5,5,5,5,yes,Stepped toward both ends with external thread; thread confirmed by a human-verified drawing fact
+d3,Internal shape,2,2,2,2,yes,Through bore stepped toward one end with internal thread; AI flagged high uncertainty
+d4,Plane surface machining,0,1,UNKNOWN,1,no,Human error: the manual analysis missed the raised key on the small end; AI initial answer was correct. Revised UNKNOWN came from wrong team feedback (missing manufacturing data)
+d5,Auxiliary holes and gear teeth,2,2,2,2,yes,Six axial holes on a 46 mm pitch circle
