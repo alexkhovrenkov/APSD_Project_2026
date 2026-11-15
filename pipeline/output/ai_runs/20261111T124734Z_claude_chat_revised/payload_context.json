@@ -1,0 +1,22 @@
+{
+ "manifest_file": "output/manifest.json",
+ "manifest_sha256": "20aed2ad7aa6fa7ea2f975a181d2da904c6bbacb1d84248ab4f9b8aa68179970",
+ "manifest_evidence_class": "LIVE_ONSHAPE_API",
+ "manifest_extraction_run": "20261111T113317Z_hmac",
+ "rule_files_sha256": {
+  "opitz_form_code_table.json": "05fd09dc4a03d0df326f113bfa96f01a889cbcca2d9e33177d43bfdb508b65ee",
+  "precedence_rules.json": "cb959df2693ca26bf29f701312126a953634421bdd70cf223e8cdd097faca906",
+  "labelled_examples.json": "a19c3421864daec475047b50dd841113f966406203c0043958ac8035ec825126",
+  "system_instructions.md": "f795014f661d47cf8cb58025a2defda666bcd26791e634612a6ef964a489f3fb"
+ },
+ "output_schema_sha256": "006e531c9dac7206d45eadeea73ce982386b00a7753d4f8129efccf21c1dde5e",
+ "labelled_examples_supplied": 1,
+ "course_table_transcription_verified_by": "Julissa Barahona & Alexei Khovrenkov",
+ "precedence_rules_approved_by": "Julissa Barahona (team)",
+ "frozen_manual_answer_included": false,
+ "credentials_included": false,
+ "interface": "chat (manual paste)",
+ "chat_prompt_sha256": "2b9fc21029a6a144ba1cf1025879702c02f721be08c7befb96e10f3b3cb11cd4",
+ "preflight_deviations_accepted": [],
+ "parent_run": "20261111T120647Z_claude_chat_initial"
+}

@@ -1,0 +1,95 @@
+{
+  "title": "OPITZ form code (digits 1-5) - course table",
+  "provenance": {
+    "transcribed_from": "coding/manual_opitz.pdf, PDF page 5, 'Figure 6: OPITZ code Table provided in the APSD26 class material'",
+    "original_source": "Course slides 'APSD.Part 02. CAPPCAM.pdf' (CO-581-B PART02, Fall 2026), OPITZ table on the slide footed 'Page 36' (same table repeated on 'Page 39'); table credited there to Radhakrishnan, Subramanian & Raju, CAD/CAM/CIM, 3rd ed., 2005",
+    "transcription": "row texts copied as printed, including wording such as 'Operating Speed'; nothing added",
+    "transcription_verified_by": "Julissa Barahona & Alexei Khovrenkov",
+    "transcription_verified_on": "11-11-2026",
+    "pipeline_author_cross_check": "2026-11-11: every d1-d5 row compared with the slide footed 'Page 36' - all rows match.",
+    "other_tables_in_the_same_deck": [
+      "Slide footed 'Page 31' (overview diagram): d1 shows 'L/D>=3' for class 2, gives class 3 'With Deviation L/D<=2', class 4 'With Deviation L/D>2', class 5 'Special', and puts rotational parts at 0-5 / nonrotational at 6-9 (the Page 36 table leaves rows 3-4 blank and labels 5-9 non rotational).",
+      "Slide footed 'Page 61': the classic OPITZ form-code table with different digit meanings (e.g. digit 3 'Rotational machining', digit 5 'Auxiliary hole(s), gear teeth, forming').",
+      "This file follows the Page 36 table, which is the table used in the team's frozen manual worksheet. Which table the instructor expects is a team/instructor decision, not resolved here."
+    ]
+  },
+  "sequence_definition": "d1 d2 d3 d4 d5 = form code; d6-d9 = supplementary code (size, material, initial stock form, accuracy); ABCD = optional secondary operation code (brief Part 00 P1, section 1.5.1). Only d1-d5 are requested from the AI.",
+  "digits": {
+    "d1": {
+      "meaning": "Part class",
+      "rows": {
+        "0": "Rotational parts: L/D <= 0.5",
+        "1": "Rotational parts: 0.5 < L/D < 3",
+        "2": "Rotational parts: L/D > 3",
+        "3": "Rotational parts: (no further text in table)",
+        "4": "Rotational parts: (no further text in table)",
+        "5": "Non rotational parts: (no further text in table)",
+        "6": "Non rotational parts: (no further text in table)",
+        "7": "Non rotational parts: (no further text in table)",
+        "8": "Non rotational parts: (no further text in table)",
+        "9": "Non rotational parts: (no further text in table)"
+      },
+      "table_gap_note": "The printed table does not state which class applies at exactly L/D = 3."
+    },
+    "d2": {
+      "meaning": "External shape, external shape elements",
+      "rows": {
+        "0": "Smoothing shape elements",
+        "1": "Stepped one end or smooth: No shape elements",
+        "2": "Stepped one end or smooth: Thread",
+        "3": "Stepped one end or smooth: Groove",
+        "4": "Stepped both ends: No shape elements",
+        "5": "Stepped both ends: Thread",
+        "6": "Stepped both ends: Groove",
+        "7": "Functional cone",
+        "8": "Operating Speed (as printed)",
+        "9": "All others"
+      }
+    },
+    "d3": {
+      "meaning": "Internal shape, internal shape elements",
+      "rows": {
+        "0": "No hole, no break through",
+        "1": "Smooth or stepped on one end: No shape elements",
+        "2": "Smooth or stepped on one end: Thread",
+        "3": "Smooth or stepped on one end: Groove",
+        "4": "Stepped both ends: No shape elements",
+        "5": "Stepped both ends: Thread",
+        "6": "Stepped both ends: Groove",
+        "7": "Functional cone",
+        "8": "Operating Speed (as printed)",
+        "9": "All others"
+      }
+    },
+    "d4": {
+      "meaning": "Plane surface machining",
+      "rows": {
+        "0": "No surface machining",
+        "1": "Surface plane/curved",
+        "2": "External plane surface, circular graduation",
+        "3": "External groove and/or slot",
+        "4": "External spline (polygon)",
+        "5": "External plane surface/slot spline",
+        "6": "Internal plane surface or slot",
+        "7": "Internal spline (polygon)",
+        "8": "Internal or slot/external polygon",
+        "9": "All others"
+      }
+    },
+    "d5": {
+      "meaning": "Auxiliary holes and gear teeth",
+      "rows": {
+        "0": "No auxiliary holes",
+        "1": "Axial, not on pitch circle dia",
+        "2": "Axial on pitch circle diameter",
+        "3": "Radial, not on pitch circle dia",
+        "4": "Radial, on pitch circle dia",
+        "5": "Axial and/radial and/other direction",
+        "6": "Spur gear teeth",
+        "7": "Bevel gear teeth",
+        "8": "Other gear teeth",
+        "9": "All others"
+      }
+    }
+  }
+}

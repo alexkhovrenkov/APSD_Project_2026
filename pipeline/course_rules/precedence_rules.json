@@ -1,0 +1,17 @@
+{
+  "title": "Decision and precedence rules sent to the AI",
+  "status": "TEAM-DEFINED (approved 2026-11-11) - not course-supplied. The brief (section 1.6.3 a) asks the team to specify precedence rules for overlapping features; no instructor precedence rules were available. These rules are procedural (how to handle evidence and conflicts) and deliberately do not add OPITZ categories. Replace or extend with course rules when available.",
+  "approved_by": "Julissa Barahona (team)",
+  "approved_on": "2026-11-11",
+  "rules": [
+    {"id": "R1", "text": "Use only the TARGET MANIFEST and the COURSE TABLE. Every digit must cite manifest fact keys (facts.<key>) or human_supplied_facts entries as evidence."},
+    {"id": "R2", "text": "Facts with status 'unknown' or 'not_retrieved' are not evidence. If a digit depends on such a fact, return UNKNOWN for that digit and say which fact is missing."},
+    {"id": "R3", "text": "Status 'absent' is valid only inside its 'scope'. A scope of 'cad_model_feature_list' means the CAD model does not contain the feature; it does not prove that the physical part or the drawing lacks it. State this limitation in the uncertainty field when it matters."},
+    {"id": "R4", "text": "Feature names, labels and file names are not geometric evidence. Use dimensions, counts, directions and positions."},
+    {"id": "R5", "text": "d1 uses length_to_diameter_ratio (overall axial length / maximum relevant diameter) from the manifest. Do not recompute it from other numbers."},
+    {"id": "R6", "text": "When more than one table row is supported by the evidence for the same digit, choose the row that matches the most specific supported element in the course table, list every other supported row in competing_candidates with the reason it was not chosen, and set uncertainty to at least 'medium'. The human reviewer makes the final decision."},
+    {"id": "R7", "text": "If the evidence matches no row, or the course table text is not specific enough to decide (e.g. a boundary value the table does not cover), return UNKNOWN."},
+    {"id": "R8", "text": "Do not assign supplementary digits (d6-d9) or secondary operation codes: material, stock, size class and accuracy are not in the manifest."},
+    {"id": "R9", "text": "Do not invent dimensions, features, thread specifications, materials or tolerances that are not in the manifest."}
+  ]
+}

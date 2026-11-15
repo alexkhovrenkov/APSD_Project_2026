@@ -1,0 +1,31 @@
+{
+ "manifest_file": "output/sensitivity/20261113T103041Z_remove-axial-holes/manifest_test.json",
+ "manifest_sha256": "2a79c45908fe8d186026e6f5163e50314833d7774e828bfdea0f1244f9b7132f",
+ "manifest_evidence_class": "LIVE_ONSHAPE_API",
+ "manifest_extraction_run": "20261113T102859Z_hmac",
+ "rule_files_sha256": {
+  "opitz_form_code_table.json": "05fd09dc4a03d0df326f113bfa96f01a889cbcca2d9e33177d43bfdb508b65ee",
+  "precedence_rules.json": "cb959df2693ca26bf29f701312126a953634421bdd70cf223e8cdd097faca906",
+  "labelled_examples.json": "a19c3421864daec475047b50dd841113f966406203c0043958ac8035ec825126",
+  "system_instructions.md": "f795014f661d47cf8cb58025a2defda666bcd26791e634612a6ef964a489f3fb"
+ },
+ "output_schema_sha256": "006e531c9dac7206d45eadeea73ce982386b00a7753d4f8129efccf21c1dde5e",
+ "labelled_examples_supplied": 1,
+ "course_table_transcription_verified_by": "Julissa Barahona & Alexei Khovrenkov",
+ "precedence_rules_approved_by": "Julissa Barahona (team)",
+ "frozen_manual_answer_included": false,
+ "credentials_included": false,
+ "interface": "chat (manual paste)",
+ "chat_prompt_sha256": "40750b4bb24a159dac66b84210850d261c1f2cc787260cac51ad65052beb301d",
+ "sensitivity_dir": "output/sensitivity/20261113T103041Z_remove-axial-holes",
+ "prediction_sha256": "1f220c5f16ebe611c4443b5583f7fb7a3ce165b80feef8a6d93bf2a595ebc89e",
+ "prediction_locked_utc": "2026-11-13T10:33:10+00:00",
+ "prediction_expected_digits": {
+  "d1": "1",
+  "d2": "5",
+  "d3": "2",
+  "d4": "1",
+  "d5": "0"
+ },
+ "preflight_deviations_accepted": []
+}

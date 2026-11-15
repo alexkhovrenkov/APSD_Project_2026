@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "apsd-lathe-feature-manifest-1.0",
+  "title": "APSD-LATHE verified feature manifest (project schema)",
+  "description": "Project-defined schema. The course brief (Part 00 P1, section 1.6.2) mentions templates/feature_manifest.json, but that template was not available to the team; this schema covers every field the brief lists: units, geometry source, model revision, part axis, principal diameters, overall length, relevant steps, bores, threads and holes, source references, unknowns and confidence.",
+  "type": "object",
+  "required": ["schema", "schema_version", "course_template_status", "unknown_convention", "evidence_class", "part", "units", "source", "model_revision", "extraction", "facts", "human_supplied_facts", "feature_inventory", "unknowns", "limitations"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {"const": "apsd-lathe-feature-manifest"},
+    "schema_version": {"const": "1.0"},
+    "course_template_status": {"type": "string"},
+    "unknown_convention": {"type": "object"},
+    "evidence_class": {"enum": ["LIVE_ONSHAPE_API", "SYNTHETIC_TEST_FIXTURE"]},
+    "part": {"type": "string"},
+    "units": {
+      "type": "object",
+      "required": ["length", "angle", "source_units"],
+      "properties": {"length": {"const": "mm"}, "angle": {"const": "deg"}, "source_units": {"type": "array", "items": {"type": "object"}}}
+    },
+    "source": {
+      "type": "object",
+      "required": ["geometry_source", "host", "api_version", "auth_mode", "document_id", "document_name", "url_context", "element_id", "element_type", "element_name", "configuration"],
+      "properties": {
+        "geometry_source": {"type": "string"},
+        "host": {"type": "string"},
+        "api_version": {"type": "string"},
+        "auth_mode": {"enum": ["hmac", "basic", "anonymous", "synthetic"]},
+        "document_id": {"type": "string"},
+        "document_name": {"type": ["string", "null"]},
+        "url_context": {"type": "object"},
+        "element_id": {"type": "string"},
+        "element_type": {"type": ["string", "null"]},
+        "element_name": {"type": ["string", "null"]},
+        "part": {"$ref": "#/$defs/fact"},
+        "configuration": {"$ref": "#/$defs/fact"}
+      }
+    },
+    "model_revision": {
+      "type": "object",
+      "required": ["snapshot_microversion", "snapshot_source", "feature_list_source_microversion", "revision_changed_during_extraction"],
+      "properties": {
+        "snapshot_microversion": {"type": ["string", "null"]},
+        "snapshot_source": {"type": "string"},
+        "element_microversion": {"type": ["string", "null"]},
+        "feature_list_source_microversion": {"type": ["string", "null"]},
+        "default_workspace_microversion_start": {"type": ["string", "null"]},
+        "default_workspace_microversion_end": {"type": ["string", "null"]},
+        "revision_changed_during_extraction": {"type": ["boolean", "null"]},
+        "revision_check_basis": {"type": "string"}
+      }
+    },
+    "extraction": {
+      "type": "object",
+      "required": ["run_id", "timestamp_utc", "evidence_dir", "endpoints", "pipeline_version"],
+      "properties": {
+        "run_id": {"type": "string"},
+        "timestamp_utc": {"type": "string"},
+        "evidence_dir": {"type": "string"},
+        "endpoints": {"type": "object"},
+        "pipeline_version": {"type": "string"}
+      }
+    },
+    "facts": {
+      "type": "object",
+      "required": ["rotation_axis", "overall_axial_length", "max_relevant_diameter", "length_to_diameter_ratio", "principal_diameters", "external_steps", "flange", "bores_and_counterbores", "internal_threads", "external_thread_in_cad_model", "external_thread_on_physical_part", "radii_fillets", "chamfers", "axial_holes", "radial_holes", "plane_surface_features", "grooves", "gear_teeth", "material", "stock_form", "tolerances", "surface_finish", "suppressed_or_failed_features"],
+      "additionalProperties": {"$ref": "#/$defs/fact"}
+    },
+    "human_supplied_facts": {"type": "array", "items": {"$ref": "#/$defs/human_fact"}},
+    "feature_inventory": {"type": "array", "items": {"type": "object"}},
+    "unknowns": {"type": "array", "items": {"type": "object", "required": ["fact", "status", "reason"]}},
+    "limitations": {"type": "array", "items": {"type": "string"}}
+  },
+  "$defs": {
+    "evidence": {
+      "type": "object",
+      "required": ["source", "ref"],
+      "properties": {
+        "source": {"enum": ["onshape_api", "drawing", "derived"]},
+        "ref": {"type": "string", "description": "evidence-file#json-pointer, or drawing page/callout"},
+        "note": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "fact": {
+      "type": "object",
+      "required": ["value", "unit", "status", "provenance", "evidence", "confidence", "confidence_reason"],
+      "additionalProperties": false,
+      "properties": {
+        "value": {},
+        "unit": {"type": ["string", "null"]},
+        "status": {"enum": ["known", "unknown", "absent", "not_retrieved"]},
+        "scope": {"type": "string"},
+        "provenance": {"enum": ["api_reported", "geometrically_derived", "human_supplied", "none"]},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/evidence"}},
+        "confidence": {"enum": ["high", "medium", "low", "none"]},
+        "confidence_reason": {"type": "string"},
+        "original": {},
+        "reason": {"type": "string"}
+      },
+      "allOf": [
+        {"if": {"properties": {"status": {"enum": ["unknown", "not_retrieved"]}}}, "then": {"properties": {"value": {"type": "null"}, "confidence": {"const": "none"}}, "required": ["reason"]}},
+        {"if": {"properties": {"status": {"const": "absent"}}}, "then": {"required": ["scope", "reason"]}},
+        {"if": {"properties": {"status": {"const": "known"}}}, "then": {"properties": {"evidence": {"minItems": 1}, "provenance": {"not": {"const": "none"}}}}}
+      ]
+    },
+    "human_fact": {
+      "type": "object",
+      "required": ["fact", "value", "unit", "provenance", "source", "verified_by", "verified_on"],
+      "properties": {
+        "fact": {"type": "string"},
+        "value": {},
+        "unit": {"type": ["string", "null"]},
+        "provenance": {"const": "human_supplied"},
+        "source": {"type": "string", "minLength": 3},
+        "verified_by": {"type": "string", "minLength": 2},
+        "verified_on": {"type": "string", "minLength": 8},
+        "note": {"type": "string"}
+      }
+    }
+  }
+}

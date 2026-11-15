@@ -1,0 +1,95 @@
+{
+ "record_type": "human_review",
+ "ai_run": "20261113T103310Z_claude_chat_sensitivity",
+ "instructions": "Fill in after comparing each AI digit with the drawing and the FROZEN manual worksheet (coding/manual_opitz.pdf). Do not edit classification_initial.json.",
+ "reviewer": "Julissa M Barahona",
+ "review_date": "13-11-2026",
+ "digits": {
+  "d1": {
+   "ai_initial": "1",
+   "human_decision": "1",
+   "final": "1",
+   "agree_with_ai": "yes",
+   "discrepancy_cause": null,
+   "discrepancy_cause_options": [
+    "ambiguous CAD geometry",
+    "lost export features",
+    "parser failure",
+    "misapplied OPITZ rules",
+    "missing manufacturing data",
+    "unsupported AI inference"
+   ],
+   "feedback_to_ai": null,
+   "comment": "Agree. Removing the holes does not change the length or the largest diameter, so L/D stays 2.1 and the part class stays 1, as we predicted."
+  },
+  "d2": {
+   "ai_initial": "5",
+   "human_decision": "5",
+   "final": "5",
+   "agree_with_ai": "yes",
+   "discrepancy_cause": null,
+   "discrepancy_cause_options": [
+    "ambiguous CAD geometry",
+    "lost export features",
+    "parser failure",
+    "misapplied OPITZ rules",
+    "missing manufacturing data",
+    "unsupported AI inference"
+   ],
+   "feedback_to_ai": null,
+   "comment": "Agree. The outside shape is unchanged: stepped toward both ends with the external thread on the Ø50 shaft, so it stays 5 as predicted."
+  },
+  "d3": {
+   "ai_initial": "2",
+   "human_decision": "2",
+   "final": "2",
+   "agree_with_ai": "yes",
+   "discrepancy_cause": null,
+   "discrepancy_cause_options": [
+    "ambiguous CAD geometry",
+    "lost export features",
+    "parser failure",
+    "misapplied OPITZ rules",
+    "missing manufacturing data",
+    "unsupported AI inference"
+   ],
+   "feedback_to_ai": null,
+   "comment": "Agree. The bore and the internal thread were not touched by the change, so 2 is unchanged as predicted. Same open point as before: the internal thread should be confirmed on the drawing."
+  },
+  "d4": {
+   "ai_initial": "1",
+   "human_decision": "1",
+   "final": "1",
+   "agree_with_ai": "yes",
+   "discrepancy_cause": null,
+   "discrepancy_cause_options": [
+    "ambiguous CAD geometry",
+    "lost export features",
+    "parser failure",
+    "misapplied OPITZ rules",
+    "missing manufacturing data",
+    "unsupported AI inference"
+   ],
+   "feedback_to_ai": null,
+   "comment": "Agree. The key on the small end is still there, so 1 stays. Good that a fresh chat gives the same answer as our final decision."
+  },
+  "d5": {
+   "ai_initial": "0",
+   "human_decision": "0",
+   "final": "0",
+   "agree_with_ai": "yes",
+   "discrepancy_cause": null,
+   "discrepancy_cause_options": [
+    "ambiguous CAD geometry",
+    "lost export features",
+    "parser failure",
+    "misapplied OPITZ rules",
+    "missing manufacturing data",
+    "unsupported AI inference"
+   ],
+   "feedback_to_ai": null,
+   "comment": "Agree. With the six axial holes removed there are no auxiliary holes and no gear teeth, so d5 changes from 2 to 0, exactly what we predicted. This is the only digit that changed."
+  }
+ },
+ "review_context": "Sensitivity test: changed copy 'APSD-LATHE-Final-Sensitivity-Test' (six axial holes removed). Compared with the team prediction locked before the AI was asked (output/sensitivity/20261113T103041Z_remove-axial-holes/prediction.json, expected 15210)."
+}

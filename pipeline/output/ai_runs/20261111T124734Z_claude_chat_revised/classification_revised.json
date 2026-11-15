@@ -1,0 +1,199 @@
+{
+ "part": "APSD-LATHE",
+ "digits": {
+  "d1": {
+   "digit": "1",
+   "course_table_row": "Rotational parts: 0.5 < L/D < 3",
+   "justification": "The manifest reports L/D = 2.1 (overall axial length 210 mm / maximum relevant diameter 100 mm), which lies strictly inside 0.5 < L/D < 3. Per R5 the ratio is used as reported, not recomputed. The table gap at exactly L/D = 3 does not apply.",
+   "course_rule_reference": "COURSE TABLE d1 row 1; DECISION RULES R1, R5",
+   "feature_evidence": [
+    {
+     "manifest_fact": "facts.length_to_diameter_ratio",
+     "observation": "value 2.1, status known, confidence high (210 / 100)"
+    },
+    {
+     "manifest_fact": "facts.overall_axial_length",
+     "observation": "210.0 mm, confidence high, agrees with the feature-list profile"
+    },
+    {
+     "manifest_fact": "facts.max_relevant_diameter",
+     "observation": "100.0 mm (largest external coaxial cylinder, the flange), confidence high"
+    }
+   ],
+   "uncertainty": "low",
+   "uncertainty_reason": "Both inputs have high confidence and the ratio is far from the 0.5 and 3 boundaries. The raised projection on the small end reaches only 17.9 mm from the axis, so it cannot change the maximum diameter.",
+   "competing_candidates": [
+    {
+     "digit": "2",
+     "why_not_chosen": "Requires L/D > 3; the reported L/D is 2.1."
+    },
+    {
+     "digit": "0",
+     "why_not_chosen": "Requires L/D <= 0.5; the reported L/D is 2.1."
+    }
+   ]
+  },
+  "d2": {
+   "digit": "5",
+   "course_table_row": "Stepped both ends: Thread",
+   "justification": "The external diameter sequence from axial 0 is 29.9 / 60 / 100 / 50 mm. The maximum diameter is interior, with steps toward both ends. An external thread is present on the long Ø50 section: CAD helical faces near Ø50 span about 82.7-210 mm, and a human-verified drawing callout gives pitch 5 and threaded length 125. Grooves and conical faces are absent in the evaluated geometry. Thread is therefore the most specific supported shape element on a part stepped at both ends.",
+   "course_rule_reference": "COURSE TABLE d2 row 5; DECISION RULES R1, R2, R3, R6",
+   "feature_evidence": [
+    {
+     "manifest_fact": "facts.external_steps",
+     "observation": "diameter sequence [29.9, 60.0, 100.0, 50.0]; max_diameter_position interior; changes toward axial 0 = 2, toward axial max = 1; monotonic_from_one_end false"
+    },
+    {
+     "manifest_fact": "facts.principal_diameters",
+     "observation": "Ø29.9 (0-20), Ø60 (20-55), Ø100 (60-80), Ø50 (85-210) mm"
+    },
+    {
+     "manifest_fact": "facts.flange",
+     "observation": "Ø100 section with smaller adjacent diameters 60 and 50 mm on both sides"
+    },
+    {
+     "manifest_fact": "human_supplied_facts[0]",
+     "observation": "external thread present on the physical part (drawing tab APSD-LATHE-Final): long Ø50 shaft, pitch callout 5, threaded length 125, verified by Ezgi Kutlu & Mario Iraheta on 11-11-2026"
+    },
+    {
+     "manifest_fact": "facts.external_thread_in_cad_model",
+     "observation": "modelled thread, pitch 5 mm; helical faces near Ø50 spanning about 82.7-210 mm (confidence medium)"
+    },
+    {
+     "manifest_fact": "facts.grooves",
+     "observation": "absent within scope evaluated_geometry (no local diameter minimum)"
+    },
+    {
+     "manifest_fact": "facts.chamfers",
+     "observation": "absent within scope evaluated_geometry (no conical face), so there is no evidence for a functional cone"
+    }
+   ],
+   "uncertainty": "low",
+   "uncertainty_reason": "Stepping and thread presence are both directly supported, the thread by a human-verified drawing fact. Per R2, facts.external_thread_on_physical_part (unknown) is not used; human_supplied_facts[0] is used instead (R1). The threadCreator majorDiameter of 25 mm disagrees with the Ø50 region, but this affects only the thread specification, not whether a thread exists.",
+   "competing_candidates": [
+    {
+     "digit": "4",
+     "why_not_chosen": "Stepped both ends with no shape elements; contradicted by the verified external thread."
+    },
+    {
+     "digit": "6",
+     "why_not_chosen": "Stepped both ends with a groove; grooves are absent in the evaluated geometry."
+    },
+    {
+     "digit": "2",
+     "why_not_chosen": "Stepped one end or smooth with a thread; the maximum diameter is interior, with steps toward both ends."
+    }
+   ]
+  },
+  "d3": {
+   "digit": "2",
+   "course_table_row": "Smooth or stepped on one end: Thread",
+   "justification": "The axial opening is continuous from end to end, so the part has a through bore. The evaluated internal diameters from axial 0 are Ø12 (0-41.42), Ø13 (41.42-170) and Ø30 (170-210) mm. This sequence never decreases, so all steps face the axial-210 end. The CAD model also reports an internal thread (pitch 2 mm, helical faces near Ø12/Ø13 over about 0-42.3 mm). On the evaluated diameters, the most specific supported row is stepped on one end with thread.",
+   "course_rule_reference": "COURSE TABLE d3 row 2; DECISION RULES R1, R3, R6, R9",
+   "feature_evidence": [
+    {
+     "manifest_fact": "facts.bores_and_counterbores",
+     "observation": "internal coaxial cylinders Ø12 (0-41.42, opens at 0), Ø13 (41.42-170), Ø30 (170-210, opens at 210); continuous_axial_opening_end_to_end true"
+    },
+    {
+     "manifest_fact": "facts.internal_threads",
+     "observation": "threadCreator thread, pitch 2 mm, full length; helical faces near 12/13 mm over about 0-42.3 mm; status known, confidence medium"
+    }
+   ],
+   "uncertainty": "high",
+   "uncertainty_reason": "Three open points: (a) The internal thread is evidenced only in the CAD model; no human-verified drawing fact confirms it. (b) The thread major diameter is not measured: the threadCreator majorDiameter is 25 mm, the Hole parameter is 14 mm and the evaluated cylinder is Ø12. If the thread root exceeds the Ø13 mid-bore, d3 becomes stepped both ends (row 5). The thread label '0.5118-12.7' (about 13 mm, 2 mm pitch) is not used as evidence (R4), but it would keep row 2. (c) A Ø12 entrance in front of a larger Ø13 bore is unusual and should be confirmed on the section view.",
+   "competing_candidates": [
+    {
+     "digit": "5",
+     "why_not_chosen": "Stepped both ends with thread holds only if the internal thread major diameter exceeds 13 mm, which is not measured (R9)."
+    },
+    {
+     "digit": "1",
+     "why_not_chosen": "Applies if the drawing does not call out the CAD internal thread; the internal_threads fact is known in the CAD model."
+    },
+    {
+     "digit": "4",
+     "why_not_chosen": "Would require both no internal thread and a both-ends stepping interpretation; neither is supported."
+    }
+   ]
+  },
+  "d4": {
+   "digit": "UNKNOWN",
+   "course_table_row": "",
+   "justification": "The d4 attribute is plane surface machining, so the digit depends on whether surfaces are machined, not only on whether plane faces exist. The geometry shows three plane faces parallel to the axis: the faces of a raised key-like projection on the Ø29.9 small end. My earlier proposal of row 1 wrongly treated their presence as proof of machining. Whether these faces are machined or come from the initial stock or primary shaping is set by the stock form and process plan. facts.stock_form has status unknown and the manifest has no machining-status fact, so per R2 the digit is UNKNOWN. The reviewers state the faces are not machined, which would give row 0. That statement is not yet a manifest fact or a human_supplied_facts entry, so under R1 it cannot be cited as evidence here.",
+   "course_rule_reference": "COURSE TABLE d4 meaning 'Plane surface machining', rows 0 and 1; DECISION RULES R1, R2, R7",
+   "feature_evidence": [
+    {
+     "manifest_fact": "facts.plane_surface_features",
+     "observation": "3 planar faces parallel to the axis on the Ø29.9 section, axial 0-20: one at 17.9 mm from the axis (159.6 mm²) and two at ±3.99 mm (69.846 mm² each). Together they bound a raised projection about 7.98 mm wide. The data give geometry only, not machining status."
+    },
+    {
+     "manifest_fact": "facts.stock_form",
+     "observation": "status unknown: the initial stock form is a manufacturing decision not encoded in CAD data, so it cannot be decided whether the plane faces are machined"
+    }
+   ],
+   "uncertainty": "high",
+   "uncertainty_reason": "The deciding fact (machining status of the plane faces, which depends on stock form) is unknown in the manifest (R2). The reviewers' finding points to row 0, but it must be entered as a human_supplied_facts entry with source and verifier before it can serve as evidence (R1).",
+   "competing_candidates": [
+    {
+     "digit": "0",
+     "why_not_chosen": "No surface machining. This is the reviewers' finding (faces not machined) and the likely final digit, but it is not yet recorded in the manifest as a human_supplied_facts entry, so it cannot be cited under R1. Record it and d4 = 0 follows."
+    },
+    {
+     "digit": "1",
+     "why_not_chosen": "Surface plane/curved. Applies only if the plane faces are machined; the reviewers state they are not, and no manifest fact establishes machining."
+    },
+    {
+     "digit": "9",
+     "why_not_chosen": "All others. Only relevant if the faces are machined and the single integral key fits no specific row; machining is not established."
+    }
+   ]
+  },
+  "d5": {
+   "digit": "2",
+   "course_table_row": "Axial on pitch circle diameter",
+   "justification": "Six Ø3.52 mm holes run parallel to the axis, equally spaced at 60° on a 46 mm pitch circle centred on the axis (blind, 4.1 mm deep). Radial holes are absent in the evaluated geometry, and the CAD feature list has no gear-tooth feature.",
+   "course_rule_reference": "COURSE TABLE d5 row 2; DECISION RULES R1, R3",
+   "feature_evidence": [
+    {
+     "manifest_fact": "facts.axial_holes",
+     "observation": "6 holes, Ø3.52 mm, PCD 46 mm, positions 0/60/120/180/240/300°, equally spaced, parallel to the axis, PCD centred on the axis; blind, depth 4.1 mm; confidence high"
+    },
+    {
+     "manifest_fact": "facts.radial_holes",
+     "observation": "absent within scope evaluated_geometry (no cylinder perpendicular to the axis)"
+    },
+    {
+     "manifest_fact": "facts.gear_teeth",
+     "observation": "absent within scope cad_model_feature_list (no gear, spline or tooth-pattern feature), confidence medium"
+    }
+   ],
+   "uncertainty": "low",
+   "uncertainty_reason": "The hole pattern comes from evaluated geometry with high confidence. The absence of gear teeth is scoped to the CAD feature list (R3). The manifest does not say which face carries the holes, but this does not change the digit.",
+   "competing_candidates": [
+    {
+     "digit": "1",
+     "why_not_chosen": "Axial holes not on a pitch circle; the holes are on an equally spaced 46 mm PCD."
+    },
+    {
+     "digit": "5",
+     "why_not_chosen": "Axial and/or radial or other directions; radial holes are absent in the evaluated geometry."
+    }
+   ]
+  }
+ },
+ "form_code": "152U2",
+ "information_not_derivable_from_geometry": [
+  "Whether the plane faces of the key on the small end are machined or come from the initial stock or primary shaping (decides d4)",
+  "Initial stock form (bar, tube, forging, casting, etc.)",
+  "Material (not assigned in Onshape; needed for the supplementary code)",
+  "Dimensional tolerances and accuracy class (feature tolerance types are NONE)",
+  "Surface finish requirements",
+  "External thread designation, standard and tolerance class (only pitch 5 and threaded length 125 are human-verified)",
+  "Whether the internal thread at the axial-0 end is required on the drawing, and its designation, major diameter and class",
+  "Supplementary code digits d6-d9 and the secondary operation code (not assigned, per R8)",
+  "Mapping of manifest axial 0 (small Ø29.9 end) to drawing left/right",
+  "Whether the drawing views reference this Part Studio (not shown by the API)"
+ ],
+ "overall_notes": "The d4 proposal changes from 1 to UNKNOWN, and the form code changes from 15212 to 152U2.\n\nThe reviewers are right that d4 classifies plane surface machining, and the earlier proposal inferred machining from geometry alone. Machining status depends on stock form, which is unknown in the manifest, so R2 requires UNKNOWN. The reviewers' finding supports row 0, giving form code 15202. To make that citable under R1, add it to human_supplied_facts with source (drawing or process plan), verified_by and date, then re-run.\n\nOther digits are unchanged. Open review points:\n(1) d3 is still high uncertainty: internal thread presence on the drawing, and whether its major diameter exceeds Ø13 (which would make it 5).\n(2) Feature inventory index 7 ('Extrude 1', FnFiH5Y4UDMPGEo_1) is not attributed to any manifest fact.\n(3) The d5 evidence lists three face IDs for six holes; confirm the hole count on the drawing.\n\nThis remains a proposal for human verification."
+}

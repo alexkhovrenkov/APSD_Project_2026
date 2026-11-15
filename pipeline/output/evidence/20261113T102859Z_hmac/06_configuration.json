@@ -1,0 +1,10 @@
+{
+ "btType": "BTConfigurationResponse-2019",
+ "rejectMicroversionSkew": false,
+ "microversionSkew": false,
+ "configurationParameters": [],
+ "currentConfiguration": [],
+ "serializationVersion": "1.2.23",
+ "sourceMicroversion": "837f878f6b4ac115a7c0444e",
+ "libraryVersion": 3112
+}

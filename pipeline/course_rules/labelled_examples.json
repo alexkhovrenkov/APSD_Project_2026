@@ -1,0 +1,25 @@
+{
+  "title": "Labelled OPITZ examples (separate from the APSD-LATHE target)",
+  "status": "1 instructor-supplied example (brief section 1.6.3 b). Do NOT use the APSD-LATHE manual answer as an example.",
+  "how_to_add": "Copy a worked example from the CAPP slides into 'examples' using the same structure. Fill source (deck + slide), validated_by and validated_on, and explain how the example geometry differs from the target.",
+  "examples": [
+    {
+      "example_id": "EX1",
+      "source": "Course slides 'APSD.Part 02. CAPPCAM.pdf' (CO-581-B PART02, Fall 2026), slide footed 'Page 37'; example credited there to Radhakrishnan, Subramanian & Raju, CAD/CAM/CIM, 3rd ed., 2005",
+      "description_of_part": "Stepped rotational part with an external screw thread on its smaller end and an axial through hole (per the slide text). Dimension callouts exactly as printed on the slide drawing: 'M10 x 1.5', 'Dia.5', '1 x 45', '12.5', '20', '40', 'Dia.20', 'Dia.25', 'R2.5'.",
+      "form_code": "15100",
+      "digit_reasons": {
+        "d1": "Slide: 'The overall length/diameter ratio, L/D = 1.6, so the first code = 1.'",
+        "d2": "Slide: 'The part is stepped on both ends with a screw thread on one end, so the second digit code would be 5'",
+        "d3": "Slide: 'The third digit code is 1 because of the through hole.'",
+        "d4": "Slide: 'The fourth and fifth digits are both 0, since no surface machining is required and there are no auxiliary holes or gear teeth on the part.'",
+        "d5": "Slide: same sentence as d4 (no auxiliary holes or gear teeth)."
+      },
+      "difference_from_target": "This is a different, smaller part: it has no off-axis holes, no flat faces and a single plain through bore. It shows the METHOD only; the target must be classified solely from the TARGET MANIFEST.",
+      "validated_by": "Instructor-supplied worked example (Prof. Dr. Omid Fatahi Valilai, CAPP slides 'Page 37')",
+      "validated_on": "2026-11-02",
+      "transcribed_by": "pipeline author (Claude Code), 2026-11-11, quotes copied from the slide text",
+      "transcription_checked_by": null
+    }
+  ]
+}
