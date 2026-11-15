@@ -1,17 +1,13 @@
-"""Stages 3-4 - build the exact OpenAI Responses API payload from the saved manifest,
-submit it, and archive request / raw response / parsed output / review template separately.
+"""Stages 3-4 - AI hand-off through the claude.ai web chat.
 
-API usage follows the official docs (checked 2026-11-09):
-  https://developers.openai.com/api/docs/quickstart
-  https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=responses
-  -> client.responses.create(model=..., instructions=..., input=[...],
-                             text={"format": {"type": "json_schema", "name": ..., "schema": ..., "strict": True}})
-  -> refusals appear as output content items of type "refusal";
-     incomplete responses have status == "incomplete" and incomplete_details.reason.
+build_chat_prompt   saved manifest.json + course_rules/* -> one paste-ready prompt (chat_prompt.txt)
+import_chat_response  the reply pasted back from the chat -> response_raw.txt, parsed classification,
+                      automatic checks, run_meta.json and an empty human_review.json
+build_chat_revision_prompt  human feedback (human_review.json) -> message for the same chat
 
-The manifest is sent as JSON text inside an ``input_text`` content part (the API does
-not accept arbitrary top-level JSON fields). The payload is built ONLY from:
-manifest.json + course_rules/*. The frozen manual answer is never read here.
+The manifest is embedded verbatim as JSON text. The prompt is built ONLY from
+manifest.json + course_rules/*; the frozen manual answer is never read here.
+A chat window cannot enforce structured output, so the reply is validated after import.
 """
 
 from __future__ import annotations
@@ -27,13 +23,10 @@ import jsonschema
 
 from .config import PIPELINE_DIR
 from .manifest import validate_manifest
-from .redact import redact_json, redact_text
+from .redact import redact_text
 
 RULES_DIR = PIPELINE_DIR / "course_rules"
 OUTPUT_SCHEMA_PATH = PIPELINE_DIR / "schemas" / "opitz_classification.schema.json"
-SCHEMA_NAME = "opitz_form_code_proposal"
-
-
 def _sha(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
@@ -101,19 +94,6 @@ def build_inputs(manifest_path: Path) -> tuple[str, list[str], dict]:
     return instructions, blocks, context
 
 
-def build_payload(manifest_path: Path, model: str) -> tuple[dict, dict]:
-    """OpenAI Responses API path (alternative; not the team's chosen interface).
-    Return (payload passed verbatim to client.responses.create, context record)."""
-    instructions, blocks, context = build_inputs(manifest_path)
-    payload = {
-        "model": model,
-        "instructions": instructions,
-        "input": [{"role": "user", "content": [{"type": "input_text", "text": b} for b in blocks]}],
-        "text": {"format": {"type": "json_schema", "name": SCHEMA_NAME, "schema": _strict_schema(), "strict": True}},
-    }
-    return payload, {**context, "interface": "OpenAI Responses API"}
-
-
 CHAT_FORMAT_HEADER = "=== REQUIRED OUTPUT FORMAT ==="
 
 
@@ -153,29 +133,7 @@ def new_run_dir(output_dir: Path, label: str) -> Path:
     return d
 
 
-def save_payload(run_dir: Path, payload: dict, context: dict, deviations: list[str]) -> None:
-    (run_dir / "request_payload.json").write_text(json.dumps(payload, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
-    (run_dir / "payload_context.json").write_text(
-        json.dumps({**context, "preflight_deviations_accepted": deviations}, indent=1) + "\n", encoding="utf-8")
-
-
 # ---------------------------------------------------------------------------------------
-def _refusal(response_dict: dict) -> str | None:
-    for item in response_dict.get("output", []) or []:
-        for c in item.get("content", []) or []:
-            if c.get("type") == "refusal":
-                return c.get("refusal")
-    return None
-
-
-def _output_text(response_dict: dict) -> str:
-    texts = []
-    for item in response_dict.get("output", []) or []:
-        if item.get("type") == "message":
-            texts += [c.get("text", "") for c in item.get("content", []) or [] if c.get("type") == "output_text"]
-    return "".join(texts)
-
-
 def check_classification(parsed: dict, manifest: dict) -> dict:
     """Structure + evidence-reference checks. Correct structure != correct OPITZ decision."""
     schema = json.loads(OUTPUT_SCHEMA_PATH.read_text(encoding="utf-8"))
@@ -222,107 +180,6 @@ def _review_template(parsed: dict | None, run_dir: Path) -> dict:
                                                      "unsupported AI inference"],
                        "feedback_to_ai": None, "comment": None} for p in ("d1", "d2", "d3", "d4", "d5")},
     }
-
-
-def run_classification(payload: dict, context: dict, run_dir: Path, api_key: str, manifest: dict) -> dict:
-    import openai
-    from openai import OpenAI
-
-    meta: dict[str, Any] = {
-        "provider": "OpenAI", "interface": "Responses API via official openai-python SDK",
-        "sdk_version": openai.__version__, "model_requested": payload["model"],
-        "structured_output_mode": "text.format json_schema, strict=true",
-        "submitted_utc": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
-        "manifest_sha256": context["manifest_sha256"], "parent_run": context.get("parent_run"),
-    }
-    client = OpenAI(api_key=api_key, timeout=180, max_retries=2)
-
-    def fail(kind: str, exc: Exception) -> dict:
-        msg = redact_text(str(exc), [api_key])
-        meta.update({"outcome": "error", "error_type": kind, "error_message": msg[:800],
-                     "http_status": getattr(exc, "status_code", None)})
-        (run_dir / "run_meta.json").write_text(json.dumps(meta, indent=1) + "\n", encoding="utf-8")
-        raise SystemExit(f"OpenAI call failed ({kind}): {msg[:300]}\nRecorded in {run_dir / 'run_meta.json'}")
-
-    try:
-        m = client.models.retrieve(payload["model"])
-        meta["model_check"] = {"id": m.id, "owned_by": getattr(m, "owned_by", None), "available_to_this_key": True}
-    except openai.AuthenticationError as exc:
-        fail("authentication (invalid OPENAI_API_KEY)", exc)
-    except openai.NotFoundError as exc:
-        fail("model not found / not available to this key", exc)
-    except openai.PermissionDeniedError as exc:
-        fail("permission denied", exc)
-    except openai.APIConnectionError as exc:
-        fail("network", exc)
-
-    try:
-        raw = client.responses.with_raw_response.create(**payload)
-    except openai.RateLimitError as exc:
-        fail("rate limit or insufficient quota/billing", exc)
-    except openai.BadRequestError as exc:
-        fail("bad request (e.g. model does not support this structured-output schema)", exc)
-    except openai.AuthenticationError as exc:
-        fail("authentication", exc)
-    except openai.PermissionDeniedError as exc:
-        fail("permission denied", exc)
-    except (openai.APIConnectionError, openai.APITimeoutError) as exc:
-        fail("network/timeout", exc)
-    except openai.APIStatusError as exc:
-        fail("api error", exc)
-
-    response = raw.parse()
-    rdict = response.model_dump(mode="json")
-    (run_dir / "response_raw.json").write_text(json.dumps(redact_json(rdict), indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
-    meta.update({
-        "request_id": raw.headers.get("x-request-id"), "response_id": rdict.get("id"),
-        "model_returned": rdict.get("model"), "created_at_unix": rdict.get("created_at"),
-        "status": rdict.get("status"), "incomplete_details": rdict.get("incomplete_details"),
-        "usage": rdict.get("usage"), "error": rdict.get("error"),
-    })
-    refusal = _refusal(rdict)
-    parsed = None
-    if refusal:
-        meta["outcome"] = "refusal"
-        meta["refusal"] = refusal
-    elif rdict.get("status") == "incomplete":
-        meta["outcome"] = "incomplete"
-    else:
-        text = _output_text(rdict)
-        try:
-            parsed = json.loads(text)
-        except json.JSONDecodeError as exc:
-            meta["outcome"] = "invalid_json"
-            meta["parse_error"] = str(exc)
-            (run_dir / "output_text_unparsed.txt").write_text(text, encoding="utf-8")
-    if parsed is not None:
-        checks = check_classification(parsed, manifest)
-        (run_dir / "classification_initial.json").write_text(json.dumps(parsed, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
-        (run_dir / "automatic_checks.json").write_text(json.dumps(checks, indent=1) + "\n", encoding="utf-8")
-        meta["outcome"] = "parsed" if checks["schema_valid"] else "parsed_but_schema_invalid"
-        meta["form_code_proposed"] = parsed.get("form_code")
-    review = run_dir / "human_review.json"
-    if not review.exists():
-        review.write_text(json.dumps(_review_template(parsed, run_dir), indent=1) + "\n", encoding="utf-8")
-    (run_dir / "run_meta.json").write_text(json.dumps(meta, indent=1) + "\n", encoding="utf-8")
-    return meta
-
-
-def build_revision_payload(parent_run: Path) -> tuple[dict, str]:
-    """New payload = original request + the AI's first answer + the human feedback from
-    human_review.json. The parent run's files are never modified."""
-    payload = json.loads((parent_run / "request_payload.json").read_text(encoding="utf-8"))
-    first = (parent_run / "classification_initial.json").read_text(encoding="utf-8")
-    review = json.loads((parent_run / "human_review.json").read_text(encoding="utf-8"))
-    fb = {p: d["feedback_to_ai"] for p, d in review["digits"].items() if d.get("feedback_to_ai")}
-    if not fb:
-        raise SystemExit("human_review.json has no feedback_to_ai entries; nothing to send.")
-    feedback = ("Human reviewer feedback on your previous proposal (reviewer: "
-                f"{review.get('reviewer') or 'not stated'}). Re-evaluate ONLY with the same manifest and rules, "
-                "and return the full d1-d5 JSON again:\n" + json.dumps(fb, indent=1))
-    payload["input"] = payload["input"] + [{"role": "assistant", "content": first},
-                                           {"role": "user", "content": feedback}]
-    return payload, feedback
 
 
 # ---------------------------------------------------------------------------------------

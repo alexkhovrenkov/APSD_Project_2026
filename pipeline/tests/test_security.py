@@ -9,7 +9,7 @@ import json
 import pytest
 
 from apsd_pipeline import onshape_client as oc
-from apsd_pipeline.config import ConfigError, OnshapeCredentials, get_openai_settings, parse_document_url
+from apsd_pipeline.config import ConfigError, OnshapeCredentials, parse_document_url
 from apsd_pipeline.onshape_client import OnshapeAPIError, OnshapeClient, sign_request
 from apsd_pipeline.redact import REDACTED, redact_headers, redact_json, redact_text
 
@@ -128,8 +128,3 @@ def test_bad_urls_rejected(url):
         parse_document_url(url)
 
 
-def test_missing_openai_settings_message_names_variables(monkeypatch):
-    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
-    monkeypatch.setenv("OPENAI_MODEL", "")
-    with pytest.raises(ConfigError, match="OPENAI_API_KEY"):
-        get_openai_settings()

@@ -13,12 +13,10 @@
                          changed-copy evidence -> output/sensitivity/<run>/ (manifest, diff, prediction form)
   sensitivity-prompt SENS_DIR
                          refuses until prediction.json is filled; then writes the chat prompt
-  correct-run-meta RUN_DIR --reason TEXT [--model NAME] [--operator NAME] [--date YYYY-MM-DD]
+  correct-run-meta RUN_DIR --reason TEXT [--model NAME] [--operator NAME] [--date YYYY-MM-DD] [--interface TEXT]
                          fix operator-entered metadata in run_meta.json (logged, reply untouched)
   chat-revision RUN_DIR  human feedback (RUN_DIR/human_review.json) -> NEW run with revision_prompt.txt
 
-  Alternative, not used by the team (OpenAI Responses API, needs OPENAI_API_KEY/OPENAI_MODEL):
-  payload | classify [--allow-preflight-gaps] | revise RUN_DIR
 """
 
 from __future__ import annotations
@@ -29,7 +27,7 @@ import os
 import sys
 from pathlib import Path
 
-from .config import PIPELINE_DIR, ConfigError, get_onshape_credentials, get_openai_settings, get_target, load_dotenv_if_present
+from .config import PIPELINE_DIR, ConfigError, get_onshape_credentials, get_target, load_dotenv_if_present
 
 OUTPUT_DIR = Path(os.environ.get("APSD_OUTPUT_DIR", PIPELINE_DIR / "output"))
 MANIFEST_PATH = OUTPUT_DIR / "manifest.json"
@@ -48,7 +46,7 @@ def _latest_evidence() -> Path:
 
 def cmd_check_env(_args) -> None:
     for name in ("ONSHAPE_DOCUMENT_URL", "ONSHAPE_AUTH_MODE", "ONSHAPE_ACCESS_KEY", "ONSHAPE_SECRET_KEY",
-                 "OPENAI_API_KEY", "OPENAI_MODEL"):
+                 "ONSHAPE_DRAWING_ELEMENT_ID"):
         print(f"{name:22s} {'set' if os.environ.get(name, '').strip() else 'not set'}")
     t = get_target()
     print(f"\nTarget: host={t.host} document={t.document_id} {t.wvm}={t.wvm_id} element={t.element_id}")
@@ -80,24 +78,8 @@ def cmd_manifest(args) -> None:
     print(f"  unknown / not retrieved: {', '.join(u['fact'] for u in manifest['unknowns']) or 'none'}")
 
 
-def _prepare(label: str, allow_gaps: bool) -> tuple:
-    from .ai_handoff import build_payload, new_run_dir, preflight_problems, save_payload
-
-    model = os.environ.get("OPENAI_MODEL", "").strip() or "<OPENAI_MODEL not set>"
-    payload, context = build_payload(MANIFEST_PATH, model)
-    problems = preflight_problems(context)
-    for p in problems:
-        print(f"  PREFLIGHT: {p}")
-    if problems and label != "dryrun" and not allow_gaps:
-        raise SystemExit("Live classification stopped because of the preflight items above. Fix them, or re-run "
-                         "with --allow-preflight-gaps to record them as accepted deviations.")
-    run_dir = new_run_dir(OUTPUT_DIR, label)
-    save_payload(run_dir, payload, context, problems if (allow_gaps or label == "dryrun") else [])
-    return payload, context, run_dir
-
-
 def cmd_chat_prompt(args) -> None:
-    from .ai_handoff import build_chat_prompt, new_run_dir, preflight_problems, save_payload
+    from .ai_handoff import build_chat_prompt, new_run_dir, preflight_problems
 
     text, context = build_chat_prompt(MANIFEST_PATH)
     problems = preflight_problems(context)
@@ -152,7 +134,7 @@ def cmd_correct_run_meta(args) -> None:
     meta_path = run_dir / "run_meta.json"
     meta = json.loads(meta_path.read_text(encoding="utf-8"))
     changes = {"model_designation": args.model, "operator": args.operator, "date_of_use": args.date,
-               "conversation_ref": args.conversation_ref}
+               "conversation_ref": args.conversation_ref, "interface": args.interface}
     log = meta.setdefault("metadata_corrections", [])
     for field, new in changes.items():
         if new is not None and meta.get(field) != new:
@@ -206,39 +188,6 @@ python -m apsd_pipeline import-response {run_dir} {run_dir / 'reply.txt'} --mode
 """)
 
 
-def cmd_payload(_args) -> None:
-    _, _, run_dir = _prepare("dryrun", True)
-    print(f"Exact request payload saved (NOT sent): {run_dir / 'request_payload.json'}")
-
-
-def cmd_classify(args) -> None:
-    from .ai_handoff import run_classification
-
-    key, _model = get_openai_settings()
-    payload, context, run_dir = _prepare("initial", args.allow_preflight_gaps)
-    manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
-    meta = run_classification(payload, context, run_dir, key, manifest)
-    print(json.dumps({k: meta.get(k) for k in ("outcome", "model_returned", "response_id", "request_id",
-                                                "form_code_proposed")}, indent=1))
-    print(f"Saved to {run_dir}. Next: fill human_review.json in that folder.")
-
-
-def cmd_revise(args) -> None:
-    from .ai_handoff import build_revision_payload, new_run_dir, run_classification, save_payload
-
-    key, _ = get_openai_settings()
-    parent = Path(args.run_dir).resolve()
-    payload, feedback = build_revision_payload(parent)
-    ctx = json.loads((parent / "payload_context.json").read_text(encoding="utf-8"))
-    ctx["parent_run"] = parent.name
-    run_dir = new_run_dir(OUTPUT_DIR, "revised")
-    save_payload(run_dir, payload, ctx, ctx.get("preflight_deviations_accepted", []))
-    (run_dir / "human_feedback_sent.txt").write_text(feedback, encoding="utf-8")
-    manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
-    meta = run_classification(payload, ctx, run_dir, key, manifest)
-    print(json.dumps({k: meta.get(k) for k in ("outcome", "form_code_proposed", "response_id")}, indent=1))
-
-
 def main(argv: list[str] | None = None) -> None:
     load_dotenv_if_present()
     ap = argparse.ArgumentParser(prog="python -m apsd_pipeline", description=__doc__,
@@ -270,6 +219,7 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--operator", default=None)
     p.add_argument("--date", default=None)
     p.add_argument("--conversation-ref", default=None)
+    p.add_argument("--interface", default=None)
     p.add_argument("--reason", required=True)
     p.set_defaults(fn=cmd_correct_run_meta)
     p = sub.add_parser("chat-revision")
@@ -283,13 +233,6 @@ def main(argv: list[str] | None = None) -> None:
     p = sub.add_parser("sensitivity-prompt")
     p.add_argument("sens_dir")
     p.set_defaults(fn=cmd_sensitivity_prompt)
-    sub.add_parser("payload").set_defaults(fn=cmd_payload)
-    p = sub.add_parser("classify")
-    p.add_argument("--allow-preflight-gaps", action="store_true")
-    p.set_defaults(fn=cmd_classify)
-    p = sub.add_parser("revise")
-    p.add_argument("run_dir")
-    p.set_defaults(fn=cmd_revise)
     args = ap.parse_args(argv)
     try:
         args.fn(args)

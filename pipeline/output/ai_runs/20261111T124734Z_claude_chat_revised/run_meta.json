@@ -2,7 +2,7 @@
  "provider": "Anthropic",
  "model_designation": "Opus 5.5 High",
  "model_designation_source": "as shown in the chat interface's model selector, entered by the operator",
- "interface": "claude.ai web chat (manual paste)",
+ "interface": "claude.ai web chat, incognito, no Project, no attachments (manual paste; same incognito chat as the initial run)",
  "date_of_use": "2026-11-13",
  "operator": "Julissa M Barahona",
  "conversation_ref": null,
@@ -15,5 +15,14 @@
  "json_extraction": "whole reply was JSON",
  "response_raw_sha256": "5d416c7976c2a9a79230b9cbca6bbe8d0c42e6c82ec2d5d263e7df865a96cefe",
  "outcome": "parsed",
- "form_code_proposed": "152U2"
+ "form_code_proposed": "152U2",
+ "metadata_corrections": [
+  {
+   "field": "interface",
+   "old": "claude.ai web chat (manual paste)",
+   "new": "claude.ai web chat, incognito, no Project, no attachments (manual paste; same incognito chat as the initial run)",
+   "reason": "interface detail added: all chats were incognito on claude.ai (account held earlier project conversations); stated by Julissa M Barahona 2026-11-15",
+   "corrected_utc": "2026-11-15T09:27:51+00:00"
+  }
+ ]
 }

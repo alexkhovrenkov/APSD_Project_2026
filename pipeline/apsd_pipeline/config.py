@@ -135,14 +135,3 @@ def get_onshape_credentials(requested_mode: str | None = None) -> OnshapeCredent
     return OnshapeCredentials(mode, ak, sk)
 
 
-def get_openai_settings() -> tuple[str, str]:
-    """Return (api_key, model). Raises ConfigError naming what is missing (never the values)."""
-    key = os.environ.get("OPENAI_API_KEY", "").strip()
-    model = os.environ.get("OPENAI_MODEL", "").strip()
-    missing = [n for n, v in (("OPENAI_API_KEY", key), ("OPENAI_MODEL", model)) if not v]
-    if missing:
-        raise ConfigError(
-            f"Missing {', '.join(missing)}. Set them in pipeline/.env or your environment "
-            "(Colab: use the Secrets panel). The OpenAI key is separate from the Onshape keys."
-        )
-    return key, model

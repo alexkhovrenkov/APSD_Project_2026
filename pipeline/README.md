@@ -10,7 +10,7 @@ Onshape document ──(read-only API GET)──▶ Onshape JSON responses
    ──▶ optional revised run (new folder)
 ```
 
-**AI choice:** Anthropic Claude through the **claude.ai web chat**. The handoff to the chat is manual: the script prepares the exact text, a person pastes it and saves the reply, and the script validates and archives that reply. The brief (§1.6.1) names Claude as an option and states that a paid API is not required. The code also contains an automated OpenAI Responses API path, which the team does **not** use (see [§8](#8-alternative-openai-api-not-used)).
+**AI choice:** Anthropic Claude through the **claude.ai web chat**. The handoff to the chat is manual: the script prepares the exact text, a person pastes it and saves the reply, and the script validates and archives that reply. The brief (§1.6.1) names Claude as an option and states that a paid API is not required.
 
 > **Current status (2026-11-11).**
 > * **Target:** the Part Studio tab **APSD-LATHE-Final** (`147da5f19a2ac767328e5f7f`) and the drawing tab **APSD-LATHE-Final** (`39fec93b315c33208dd4a282`) of the team document, as instructed by the team. Earlier runs used the tab now named "WIP"; they stay archived.
@@ -75,7 +75,7 @@ python -m apsd_pipeline chat-prompt        # writes the exact prompt and prints 
 
 Then send the prompt to Claude:
 
-1. Open a **new** conversation on <https://claude.ai>. Do **not** use a Project, attached files or an earlier chat, so that Claude sees nothing except the prompt. This matters because the team's manual answer must not reach the AI.
+1. Open a new **incognito chat** on <https://claude.ai>, outside any Project and with no attached files. The team did this for every run, because the account contained earlier conversations about this project and other material that could influence the answer. Claude must see only the prompt, and in particular not your manual answer. Use the *same* incognito chat for a feedback round (`chat-revision`) and a *new* one for an independent run such as the sensitivity test.
 2. Write down the **model name shown in the model selector** and the date.
 3. Paste the entire `chat_prompt.txt` as one message (about 52,000 characters; claude.ai may show it as a pasted attachment, which is fine). Send it.
 4. Copy Claude's complete reply, unedited, into `reply.txt` in the run folder.
@@ -223,7 +223,7 @@ Run `20261111T113317Z_hmac` (authenticated, tab APSD-LATHE-Final), overall lengt
 | Claude classification | ✅ `output/ai_runs/20261111T120647Z_claude_chat_initial` (Opus 5.5 High, 2026-11-11): **15212**, schema valid, no evidence findings |
 | Human review + correction round | ✅ review agrees on d1–d3 and d5. d4 was overridden to 0, the feedback round (`20261111T124734Z_claude_chat_revised`) gave **152U2**, and after re-checking the drawing the team set d4 = 1. **Final 15212** |
 | Sensitivity test | ✅ six axial holes removed in tab APSD-LATHE-Final-Sensitivity-Test. Prediction 15210 locked 10:33 UTC; Claude (`20261113T103310Z_claude_chat_sensitivity`) returned **15210**. Record: `output/sensitivity/20261113T103041Z_remove-axial-holes/` |
-| Offline tests | ✅ `python -m pytest -q`: 57 passed (includes regression tests on the archived WIP runs and the Final run) |
+| Offline tests | ✅ `python -m pytest -q`: 56 passed (includes regression tests on the archived WIP runs and the Final run) |
 
 **To finish the workflow**
 1. **Team check of the Final model.** Both `threadCreator` features report `majorDiameter = 25 mm`, which matches neither thread region (Ø50 shaft, Ø12/13 bore). Check the threads against the APSD-LATHE-Final drawing. The manifest flags this in `consistency_notes` and does not pick a value.
@@ -237,7 +237,7 @@ Run `20261111T113317Z_hmac` (authenticated, tab APSD-LATHE-Final), overall lengt
 pipeline/
   README.md                 this file
   REPORT_NOTES.md           Q4–Q6 material and evidence chains for the report
-  requirements.txt          pinned dependencies (openai only for the unused alternative path)
+  requirements.txt          pinned dependencies
   .env.example              empty placeholders (copy to .env)
   apsd_pipeline/            Python package (config, client, extract, parsers, manifest, ai_handoff, CLI)
   schemas/                  manifest schema, AI output schema
@@ -246,9 +246,5 @@ pipeline/
   tests/                    offline tests; fixtures and replies are SYNTHETIC
   output/evidence/<run>/    LIVE sanitized Onshape responses + request log
   output/manifest.json      latest validated manifest
-  output/ai_runs/<run>/     AI runs (OpenAI dry-run folders are git-ignored)
+  output/ai_runs/<run>/     AI runs (prompt, reply, parsed output, checks, review)
 ```
-
-## 8. Alternative: OpenAI API (not used)
-
-The code also contains an automated path (`payload`, `classify`, `revise`). It uses the OpenAI Responses API with strict Structured Outputs, built from the same input blocks. That path needs `OPENAI_API_KEY` and `OPENAI_MODEL` in `.env`. It was written and unit-tested (including a mock-transport test showing the SDK sends the payload unchanged), but it has **never been run against OpenAI**. The team chose the Claude chat path instead.

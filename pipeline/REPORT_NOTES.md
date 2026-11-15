@@ -26,7 +26,7 @@ Draft text for the group report, §4 "Generative AI configuration and implementa
 * A schema-validated manifest.
 * The exact prompt text, with hashes of the manifest and every rule file.
 * The unedited reply (`response_raw.txt`).
-* An offline test suite (57 tests, including regression tests on the archived live runs).
+* An offline test suite (56 tests, including regression tests on the archived live runs).
 
 A chat window cannot enforce structured output, so the JSON structure is checked **after** import. The chat model can also change over time and outputs vary between conversations, so the first run is archived unchanged and the model name and date are recorded.
 
@@ -40,9 +40,11 @@ A chat window cannot enforce structured output, so the JSON structure is checked
 **Automation achieved.**
 * Extraction, manifest, prompt generation, reply validation and archiving each take one command.
 * The handoff to Claude is **manual**: a person pastes the prompt and saves the reply. This is semi-automation, and the report should state it plainly.
+* **All chats were incognito** on claude.ai, outside any Project and with no attached files. The team's account contained earlier conversations about this project and other material that could have influenced the answer.
+  * The initial run and the feedback round used the same incognito chat.
+  * The sensitivity test used a new incognito chat.
 * Human review and the final code remain manual by design.
 * *Current state:* authenticated extraction of the APSD-LATHE-Final tab, the initial Claude run, one feedback round and one sensitivity test have all run on live data.
-* An automated OpenAI Responses API path exists in the code but was not used.
 
 ## Q5 — Model adaptation
 

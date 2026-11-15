@@ -19,8 +19,6 @@ SENSITIVE_HEADERS = {
     "on-nonce",
     "x-api-key",
     "api-key",
-    "openai-organization",
-    "openai-project",
     "proxy-authorization",
 }
 
@@ -50,7 +48,7 @@ _SECRET_PATTERNS = [
     re.compile(r"On [A-Za-z0-9]+:HmacSHA256:[A-Za-z0-9+/=]+"),  # Onshape signature header
     re.compile(r"Basic [A-Za-z0-9+/=]{8,}"),
     re.compile(r"Bearer [A-Za-z0-9._\-]{8,}"),
-    re.compile(r"sk-[A-Za-z0-9_\-]{12,}"),  # OpenAI-style keys
+    re.compile(r"sk-[A-Za-z0-9_\-]{12,}"),  # "sk-..." style API keys (several AI providers)
 ]
 
 

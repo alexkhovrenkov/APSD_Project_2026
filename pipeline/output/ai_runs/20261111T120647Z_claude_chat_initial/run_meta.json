@@ -2,7 +2,7 @@
  "provider": "Anthropic",
  "model_designation": "Opus 5.5 High",
  "model_designation_source": "as shown in the chat interface's model selector, entered by the operator",
- "interface": "claude.ai web chat (manual paste)",
+ "interface": "claude.ai web chat, incognito, no Project, no attachments (manual paste; same incognito chat as the feedback round)",
  "date_of_use": "2026-11-11",
  "operator": "Julissa M Barahona",
  "conversation_ref": null,
@@ -30,6 +30,13 @@
    "new": "Julissa M Barahona",
    "reason": "placeholders were left in the import command",
    "corrected_utc": "2026-11-11T12:25:20+00:00"
+  },
+  {
+   "field": "interface",
+   "old": "claude.ai web chat (manual paste)",
+   "new": "claude.ai web chat, incognito, no Project, no attachments (manual paste; same incognito chat as the feedback round)",
+   "reason": "interface detail added: all chats were incognito on claude.ai (account held earlier project conversations); stated by Julissa M Barahona 2026-11-15",
+   "corrected_utc": "2026-11-15T09:27:51+00:00"
   }
  ]
 }

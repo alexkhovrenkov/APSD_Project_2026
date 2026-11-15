@@ -5,7 +5,7 @@ import json
 import pytest
 
 from apsd_pipeline.ai_handoff import (CHAT_FORMAT_HEADER, build_chat_prompt, build_chat_revision_prompt,
-                                      build_payload, extract_json_reply, import_chat_response)
+                                      extract_json_reply, import_chat_response)
 from apsd_pipeline.manifest import build_manifest, write_manifest
 
 
@@ -36,11 +36,12 @@ def _run_dir(tmp_path, manifest_file, parent=None):
     return d
 
 
-def test_chat_prompt_matches_api_inputs_and_is_isolated(manifest_file):
+def test_chat_prompt_contents_and_isolation(manifest_file):
     text, ctx = build_chat_prompt(manifest_file)
-    payload, _ = build_payload(manifest_file, "x")
-    for block in payload["input"][0]["content"]:  # identical content to the API path
-        assert block["text"] in text
+    for header in ("=== INSTRUCTIONS ===", "=== COURSE OPITZ TABLE", "=== DECISION RULES ===",
+                   "=== LABELLED EXAMPLES", "=== TARGET MANIFEST"):
+        assert header in text
+    assert "ONSHAPE_SECRET" not in text and ctx["frozen_manual_answer_included"] is False
     assert manifest_file.read_text() in text and CHAT_FORMAT_HEADER in text and '"additionalProperties": false' in text
     assert "15202" not in text and "15U" not in text and "manual_opitz" not in text  # no hint of the manual answer
     assert ctx["interface"].startswith("chat") and len(ctx["chat_prompt_sha256"]) == 64

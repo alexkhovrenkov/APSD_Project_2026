@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from apsd_pipeline.ai_handoff import _strict_schema, build_payload, check_classification
+from apsd_pipeline.ai_handoff import _strict_schema, check_classification
 from apsd_pipeline.feature_parser import parse_features
 from apsd_pipeline.geometry_parser import parse_bodydetails
 from apsd_pipeline.manifest import build_manifest, write_manifest
@@ -101,21 +101,6 @@ def test_live_authenticated_wip_regression(tmp_path):
     assert m["source"]["part"]["value"]["part_count"] == 1
 
 
-def test_payload_contents_and_isolation(tmp_path, synthetic_evidence_dir):
-    m = build_manifest(synthetic_evidence_dir, evidence_class="SYNTHETIC_TEST_FIXTURE")
-    mp = tmp_path / "manifest.json"
-    write_manifest(m, mp)
-    payload, ctx = build_payload(mp, "test-model")
-    assert set(payload) == {"model", "instructions", "input", "text"}
-    assert payload["text"]["format"]["type"] == "json_schema" and payload["text"]["format"]["strict"] is True
-    texts = [c["text"] for c in payload["input"][0]["content"]]
-    assert any(mp.read_text() in t for t in texts)  # the saved manifest file, verbatim
-    blob = json.dumps(payload)
-    assert "15202" not in blob  # the team's frozen manual code must not reach the AI
-    assert "manual_opitz" not in blob and "OPENAI_API_KEY" not in blob and "ONSHAPE_SECRET" not in blob
-    assert ctx["frozen_manual_answer_included"] is False
-
-
 def test_strict_schema_is_strict_mode_compatible():
     s = _strict_schema()
 
@@ -154,31 +139,6 @@ def test_output_checks_detect_problems(synthetic_evidence_dir):
     broken = _ai_output()
     broken["digits"]["d1"]["digit"] = "12"
     assert not check_classification(broken, m)["schema_valid"]
-
-
-def test_openai_sdk_sends_payload_unchanged(tmp_path, synthetic_evidence_dir):
-    """The official SDK accepts the payload and POSTs it verbatim to /v1/responses.
-    A mock transport captures the request; nothing leaves the machine."""
-    import httpx2 as httpx  # HTTP library used by openai-python 3.x
-    from openai import OpenAI
-
-    m = build_manifest(synthetic_evidence_dir, evidence_class="SYNTHETIC_TEST_FIXTURE")
-    mp = tmp_path / "manifest.json"
-    write_manifest(m, mp)
-    payload, _ = build_payload(mp, "test-model")
-    seen = {}
-
-    def handler(request: httpx.Request) -> httpx.Response:
-        seen["url"], seen["body"] = str(request.url), json.loads(request.content)
-        seen["auth"] = request.headers.get("authorization", "")
-        return httpx.Response(400, json={"error": {"message": "mock", "type": "invalid_request_error"}})
-
-    client = OpenAI(api_key="test-key-not-real", max_retries=0, http_client=httpx.Client(transport=httpx.MockTransport(handler)))
-    with pytest.raises(Exception):
-        client.responses.create(**payload)
-    assert seen["url"].endswith("/responses")
-    assert seen["body"] == payload
-    assert "test-key-not-real" not in json.dumps(seen["body"])  # key only in the header, never in the payload
 
 
 @pytest.mark.skipif(_run(FINAL_RUN) is None, reason="archived APSD-LATHE-Final run not present")
