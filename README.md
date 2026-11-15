@@ -41,4 +41,3 @@ Tests (offline, no keys needed): `python -m pytest -q`
 | `pipeline/apsd_pipeline/` | The Python code |
 | `pipeline/course_rules/` | OPITZ table, decision rules, worked example |
 | `pipeline/output/` | Saved API data, `manifest.json`, all AI runs and reviews |
-| `report/` | LaTeX sections for the report |
